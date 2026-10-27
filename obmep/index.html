@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBMEP - Níveis e Anos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+        .top-bar { position: fixed; top: 1.5rem; left: 1.5rem; display: flex; gap: 0.75rem; z-index: 200; }
+        .top-btn { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; padding: 0.6rem 1rem; border-radius: 0.5rem; cursor: pointer; transition: all 0.2s; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; text-decoration: none; font-family: inherit;}
+        .top-btn:hover { background: #334155; color: #fff; }
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+    </style>
+</head>
+<body class="min-h-screen p-6 pt-24">
+    
+    <div class="top-bar">
+        <!-- Volta 1 nível para a raiz -->
+        <a href="../index.html" class="top-btn" title="Ir para a Página Inicial">🏠 Página Inicial</a>
+        <!-- Código universal para "página anterior" -->
+        <a href="#" onclick="history.back(); return false;" class="top-btn" title="Página Anterior">⬅️ Voltar</a>
+    </div>
+
+    <div class="max-w-3xl mx-auto">
+        <h1 class="text-3xl md:text-4xl font-bold text-center mb-10 text-blue-400">Provas da OBMEP</h1>
+        
+        <div class="flex flex-col gap-4">
+            
+            <!-- Nível 1 -->
+            <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-lg">
+                <button onclick="toggleAccordion('n1')" class="w-full p-6 text-left text-xl font-bold flex justify-between items-center hover:bg-slate-700 transition">
+                    <span>Nível 1 (6º e 7º Ano)</span>
+                    <span id="icon-n1" class="text-blue-400">▼</span>
+                </button>
+                <div id="n1" class="accordion-content bg-slate-800/50">
+                    <div class="p-6 grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 gap-3">
+                        <!-- Gerado via JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nível 2 -->
+            <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-lg">
+                <button onclick="toggleAccordion('n2')" class="w-full p-6 text-left text-xl font-bold flex justify-between items-center hover:bg-slate-700 transition">
+                    <span>Nível 2 (8º e 9º Ano)</span>
+                    <span id="icon-n2" class="text-blue-400">▼</span>
+                </button>
+                <div id="n2" class="accordion-content bg-slate-800/50">
+                    <div class="p-6 grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 gap-3">
+                        <!-- Gerado via JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nível 3 -->
+            <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-lg">
+                <button onclick="toggleAccordion('n3')" class="w-full p-6 text-left text-xl font-bold flex justify-between items-center hover:bg-slate-700 transition">
+                    <span>Nível 3 (Ensino Médio)</span>
+                    <span id="icon-n3" class="text-blue-400">▼</span>
+                </button>
+                <div id="n3" class="accordion-content bg-slate-800/50">
+                    <div class="p-6 grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 gap-3">
+                        <!-- Gerado via JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Função para gerar os anos automaticamente
+        function generateYears(containerId, levelFolder) {
+            const container = document.getElementById(containerId).querySelector('.grid');
+            let html = '';
+            for(let year = 2005; year <= 2025; year++) {
+                // Verifica se é Nível 3 e ano 2025 (único ativo por enquanto)
+                if (levelFolder === 'nível 3' && year === 2025) {
+                    let path = levelFolder + '/' + year + '/index.html';
+                    html += `<a href="${path}" class="bg-slate-700 hover:bg-blue-500 text-blue-300 hover:text-white text-center py-3 rounded-lg border border-blue-500/60 hover:border-blue-400 transition duration-200 text-lg font-bold shadow-[0_0_10px_rgba(59,130,246,0.2)] hover:shadow-[0_0_15px_rgba(59,130,246,0.5)] hover:-translate-y-1" title="Acessar resoluções de 2025">${year}</a>`;
+                } else {
+                    // Botões desativados
+                    html += `<div class="bg-slate-800/40 text-slate-600 text-center py-3 rounded-lg border border-slate-700/30 text-lg font-medium cursor-not-allowed" title="Em breve...">${year}</div>`;
+                }
+            }
+            container.innerHTML = html;
+        }
+
+        // Executa a geração para cada nível
+        generateYears('n1', 'nível 1');
+        generateYears('n2', 'nível 2');
+        generateYears('n3', 'nível 3');
+
+        // Função de abrir e fechar a sanfona
+        function toggleAccordion(id) {
+            const content = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id);
+            
+            if (content.style.maxHeight) {
+                content.style.maxHeight = null;
+                icon.textContent = '▼';
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+                icon.textContent = '▲';
+            }
+        }
+    </script>
+</body>
+</html>

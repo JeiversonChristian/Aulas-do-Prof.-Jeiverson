@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBMEP 2025 - Nível 3</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+        .top-bar { position: fixed; top: 1.5rem; left: 1.5rem; display: flex; gap: 0.75rem; z-index: 200; }
+        .top-btn { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; padding: 0.6rem 1rem; border-radius: 0.5rem; cursor: pointer; transition: all 0.2s; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; text-decoration: none; font-family: inherit;}
+        .top-btn:hover { background: #334155; color: #fff; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center pt-24 p-6">
+    
+    <div class="top-bar">
+        <!-- Volta 3 níveis para encontrar a pasta raiz (2025 -> nível 3 -> obmep -> raiz) -->
+        <a href="../../../index.html" class="top-btn" title="Ir para a Página Inicial">🏠 Página Inicial</a>
+        <a href="#" onclick="history.back(); return false;" class="top-btn" title="Página Anterior">⬅️ Voltar</a>
+    </div>
+
+    <div class="w-full max-w-2xl text-center">
+        <h1 class="text-3xl md:text-4xl font-bold text-blue-400 mb-2">OBMEP 2025</h1>
+        <p class="text-slate-400 text-lg mb-10">Nível 3 (Ensino Médio) - Lista de Resoluções</p>
+        
+        <div class="flex flex-col gap-4 text-left">
+            <!-- Link para a questão 4 -->
+            <a href="questao_4.html" class="bg-slate-800 border border-slate-700 hover:border-blue-500 rounded-xl p-5 flex justify-between items-center group transition shadow-sm hover:shadow-lg hover:shadow-blue-500/20">
+                <div class="flex items-center gap-4">
+                    <span class="bg-blue-900/40 text-blue-400 font-bold w-12 h-12 rounded-lg flex items-center justify-center text-xl">4</span>
+                    <span class="text-xl text-slate-200 group-hover:text-blue-400 transition">Questão 4</span>
+                </div>
+                <span class="text-slate-500 group-hover:text-blue-400 text-xl">▶</span>
+            </a>
+
+            <!-- Link para a questão 5 -->
+            <a href="questao_5.html" class="bg-slate-800 border border-slate-700 hover:border-emerald-500 rounded-xl p-5 flex justify-between items-center group transition shadow-sm hover:shadow-lg hover:shadow-emerald-500/20">
+                <div class="flex items-center gap-4">
+                    <span class="bg-emerald-900/40 text-emerald-400 font-bold w-12 h-12 rounded-lg flex items-center justify-center text-xl">5</span>
+                    <span class="text-xl text-slate-200 group-hover:text-emerald-400 transition">Questão 5</span>
+                </div>
+                <span class="text-slate-500 group-hover:text-emerald-400 text-xl">▶</span>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
