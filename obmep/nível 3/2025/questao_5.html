@@ -81,7 +81,7 @@
             border-radius: 0.75rem;
             border: 1px solid #475569;
             padding: 2rem;
-            min-height: 280px;
+            min-height: 300px;
             display: flex;
             flex-direction: column;
             box-shadow: inset 0 4px 6px rgba(0,0,0,0.3);
@@ -103,19 +103,19 @@
             align-items: center;
             justify-content: center;
             position: relative;
-            font-size: 1.6rem;
+            font-size: 1.7rem;
             font-family: 'Times New Roman', Times, serif;
         }
 
         /* Estruturas Matemáticas Dinâmicas */
-        .row { display: flex; align-items: center; justify-content: center; white-space: pre; }
+        .row { display: flex; align-items: center; justify-content: center; }
         .frac { display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 6px; }
         .num { border-bottom: 2px solid #f8fafc; padding: 2px 6px; display: flex; align-items: center; justify-content: center; }
         .den { padding: 2px 6px; display: flex; align-items: center; justify-content: center; }
         
         .anim { 
             display: inline-block; 
-            white-space: pre; 
+            white-space: nowrap; 
             will-change: transform, opacity;
         }
         .math { font-style: italic; }
@@ -186,10 +186,35 @@
         .c-op { color: #94a3b8; } /* Cinza claro para operadores */
         .c-hl { color: #f43f5e; font-weight: bold; text-shadow: 0 0 8px rgba(244,63,94,0.6); } /* Destaque mudanças */
         .c-res { color: #34d399; font-weight: bold; } /* Verde para resultado */
+
+        /* Classes de Destaque Controlado (Prévia Visual) */
+        @keyframes blink {
+            0%, 100% { opacity: 1; color: #f43f5e; text-shadow: 0 0 10px #f43f5e; transform: scale(1.15); }
+            50% { opacity: 0.4; color: inherit; text-shadow: none; transform: scale(1); }
+        }
+        .blink-me { animation: blink 1s ease-in-out infinite; display: inline-block; }
+        
+        .cross-red { color: #ef4444 !important; text-shadow: 0 0 12px rgba(239,68,68,0.7); transform: scale(1.1); z-index: 10; transition: all 0.3s; }
+        .cross-blue { color: #3b82f6 !important; text-shadow: 0 0 12px rgba(59,130,246,0.7); transform: scale(1.1); z-index: 10; transition: all 0.3s; }
+        
+        .hl-yellow { color: #fcd34d !important; text-shadow: 0 0 12px rgba(251,191,36,0.8); transform: scale(1.15); z-index: 10; transition: all 0.3s; }
+        .hl-mirror { filter: drop-shadow(0 0 10px rgba(251,191,36,0.5)); transform: scale(1.05); transition: all 0.3s; }
     </style>
 </head>
 <body>
     
+    <!-- Definição de SVG Global para Setas -->
+    <svg style="position: absolute; width: 0; height: 0; pointer-events: none;">
+        <defs>
+            <marker id="arr-red" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L6,3 z" fill="#ef4444" />
+            </marker>
+            <marker id="arr-blu" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L6,3 z" fill="#3b82f6" />
+            </marker>
+        </defs>
+    </svg>
+
     <!-- Controles Topo -->
     <div class="top-bar">
         <a href="../../../index.html" class="top-btn" title="Ir para a Página Inicial">🏠 Página Inicial</a>
@@ -271,15 +296,14 @@
         const penSizeInput = document.getElementById('pen-size');
         const eraserSizeInput = document.getElementById('eraser-size');
         
-        let currentTool = 'none'; // 'none', 'pen', 'eraser'
-        let penColor = '#f43f5e'; // Vermelho laser
+        let currentTool = 'none';
+        let penColor = '#f43f5e';
         let penSize = 4;
         let eraserSize = 40;
         let isDrawing = false;
         let lastX = 0;
         let lastY = 0;
         
-        // Configurar Eventos do Submenu
         colorBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 colorBtns.forEach(b => b.classList.remove('active'));
@@ -290,15 +314,8 @@
             });
         });
 
-        penSizeInput.addEventListener('input', (e) => {
-            penSize = e.target.value;
-            setupCanvasCtx();
-        });
-
-        eraserSizeInput.addEventListener('input', (e) => {
-            eraserSize = e.target.value;
-            setupCanvasCtx();
-        });
+        penSizeInput.addEventListener('input', (e) => { penSize = e.target.value; setupCanvasCtx(); });
+        eraserSizeInput.addEventListener('input', (e) => { eraserSize = e.target.value; setupCanvasCtx(); });
 
         function updateCursor() {
             if (currentTool === 'pen') {
@@ -322,7 +339,6 @@
         function setupCanvasCtx() {
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
-            
             if (currentTool === 'eraser') {
                 ctx.globalCompositeOperation = 'destination-out';
                 ctx.lineWidth = eraserSize;
@@ -340,13 +356,9 @@
         resizeCanvas();
 
         function toggleTool(tool) {
-            if (currentTool === tool) {
-                currentTool = 'none'; // Desliga
-            } else {
-                currentTool = tool;
-            }
+            if (currentTool === tool) currentTool = 'none';
+            else currentTool = tool;
             
-            // Reseta UI
             btnPen.classList.remove('active-pen');
             btnEraser.classList.remove('active-eraser');
             penMenu.classList.add('hidden');
@@ -367,7 +379,6 @@
             } else {
                 canvas.style.pointerEvents = 'none';
             }
-            
             updateCursor();
         }
 
@@ -386,12 +397,10 @@
             if (!isDrawing || currentTool === 'none') return;
             e.preventDefault(); 
             const pos = getPos(e);
-            
             ctx.beginPath();
             ctx.moveTo(lastX, lastY);
             ctx.lineTo(pos.x, pos.y);
             ctx.stroke();
-            
             lastX = pos.x;
             lastY = pos.y;
         }
@@ -399,9 +408,7 @@
         function stopDrawing() { isDrawing = false; }
 
         function getPos(e) {
-            if (e.touches && e.touches.length > 0) {
-                return { x: e.touches[0].clientX, y: e.touches[0].clientY };
-            }
+            if (e.touches && e.touches.length > 0) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
             return { x: e.clientX, y: e.clientY };
         }
 
@@ -409,7 +416,6 @@
         canvas.addEventListener('mousemove', draw);
         canvas.addEventListener('mouseup', stopDrawing);
         canvas.addEventListener('mouseout', stopDrawing);
-        
         canvas.addEventListener('touchstart', startDrawing, {passive: false});
         canvas.addEventListener('touchmove', draw, {passive: false});
         canvas.addEventListener('touchend', stopDrawing);
@@ -448,28 +454,19 @@
             document.addEventListener('touchend', stopResize);
         }
         
-        function handleTouchResize(e) { 
-            e.preventDefault(); 
-            resizeWebcam(e.touches[0]); 
-        }
+        function handleTouchResize(e) { e.preventDefault(); resizeWebcam(e.touches[0]); }
 
         function resizeWebcam(e) {
             if (!isResizing) return;
             const dx = e.clientX - startMouseX;
             const dy = e.clientY - startMouseY;
-            
             const handleClass = activeHandle.className;
             let newW = startW; let newH = startH; let newX = startX; let newY = startY;
 
-            if (handleClass.includes('se')) {
-                newW = startW + dx; newH = startH + dy;
-            } else if (handleClass.includes('sw')) {
-                newW = startW - dx; newH = startH + dy; newX = startX + dx;
-            } else if (handleClass.includes('ne')) {
-                newW = startW + dx; newH = startH - dy; newY = startY + dy;
-            } else if (handleClass.includes('nw')) {
-                newW = startW - dx; newH = startH - dy; newX = startX + dx; newY = startY + dy;
-            }
+            if (handleClass.includes('se')) { newW = startW + dx; newH = startH + dy; } 
+            else if (handleClass.includes('sw')) { newW = startW - dx; newH = startH + dy; newX = startX + dx; } 
+            else if (handleClass.includes('ne')) { newW = startW + dx; newH = startH - dy; newY = startY + dy; } 
+            else if (handleClass.includes('nw')) { newW = startW - dx; newH = startH - dy; newX = startX + dx; newY = startY + dy; }
 
             if (newW >= 100) { webcam.style.width = newW + 'px'; webcam.style.left = newX + 'px'; }
             if (newH >= 80) { webcam.style.height = newH + 'px'; webcam.style.top = newY + 'px'; }
@@ -483,13 +480,43 @@
             document.removeEventListener('touchend', stopResize);
         }
 
-        function clearCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
+        function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
-        // --- DADOS DOS PASSOS (FLIP ANIMATION) - QUESTÃO 5 ---
+        // --- FLUXO DE DADOS: PREVIEW -> EXECUTE (QUESTÃO 5) ---
         const stepsData = [
-            {
+            { // 0: Tela Inicial
+                text: "Pronto para começar? Use as setas do teclado (➔) para avançar os passos da resolução.",
+                html: `<div class="row" style="height: 100%; display: flex; align-items: center;">
+                        <span class="anim" style="font-size: 5rem; color: #3b82f6; filter: drop-shadow(0 0 15px rgba(59,130,246,0.5));">▶</span>
+                      </div>`
+            },
+            { // 1: Tanque inicial cheio
+                text: "Começamos com o tanque cheio: são 21 litros de uma mistura com 18% (18/100) de álcool:",
+                html: `<div class="row">
+                        <div class="frac">
+                            <div class="num"><span id="n18" class="anim c-18">18</span></div>
+                            <div class="den"><span id="d100_1" class="anim c-op">100</span></div>
+                        </div>
+                        <span id="dot1" class="anim c-op" style="margin:0 4px;">·</span>
+                        <span id="p21_1" class="anim c-21">21</span>
+                      </div>`
+            },
+            { // 2: Retirar x litros (Prévia piscando)
+                text: "Vamos montar a equação. No tanque havia 21 litros, e vamos retirar 'x' litros. A quantidade de álcool que sobrou dessa parte a 18% é:",
+                html: `<div class="row">
+                        <div class="frac">
+                            <div class="num"><span id="n18" class="anim c-18">18</span></div>
+                            <div class="den"><span id="d100_1" class="anim c-op">100</span></div>
+                        </div>
+                        <span id="dot1" class="anim c-op" style="margin:0 4px;">·</span>
+                        <span id="pb1" class="anim c-op blink-me">(</span>
+                        <span id="p21_1" class="anim c-21">21</span>
+                        <span id="min1" class="anim math c-op blink-me" style="margin: 0 6px;">−</span>
+                        <span id="x1" class="anim math c-x blink-me">x</span>
+                        <span id="pb2" class="anim c-op blink-me">)</span>
+                      </div>`
+            },
+            { // 3: Retirar x litros (Execução)
                 text: "Vamos montar a equação. No tanque havia 21 litros, e vamos retirar 'x' litros. A quantidade de álcool que sobrou dessa parte a 18% é:",
                 html: `<div class="row">
                         <div class="frac">
@@ -504,7 +531,7 @@
                         <span id="pb2" class="anim c-op">)</span>
                       </div>`
             },
-            {
+            { // 4: Adicionar x litros a 90% (Prévia piscando)
                 text: "A essa mistura que sobrou, vamos adicionar 'x' litros de um novo álcool mais forte, a 90%:",
                 html: `<div class="row">
                         <div class="frac">
@@ -518,7 +545,31 @@
                         <span id="x1" class="anim math c-x">x</span>
                         <span id="pb2" class="anim c-op">)</span>
                         
-                        <span id="plus1" class="anim c-hl" style="margin: 0 10px;">+</span>
+                        <span id="plus1" class="anim c-hl blink-me" style="margin: 0 10px;">+</span>
+                        
+                        <div class="frac">
+                            <div class="num"><span id="n90" class="anim c-90 blink-me">90</span></div>
+                            <div class="den"><span id="d100_2" class="anim c-op blink-me">100</span></div>
+                        </div>
+                        <span id="dot2" class="anim c-op blink-me" style="margin:0 4px;">·</span>
+                        <span id="x2" class="anim math c-x blink-me">x</span>
+                      </div>`
+            },
+            { // 5: Adicionar x litros a 90% (Execução)
+                text: "A essa mistura que sobrou, vamos adicionar 'x' litros de um novo álcool mais forte, a 90%:",
+                html: `<div class="row">
+                        <div class="frac">
+                            <div class="num"><span id="n18" class="anim c-18">18</span></div>
+                            <div class="den"><span id="d100_1" class="anim c-op">100</span></div>
+                        </div>
+                        <span id="dot1" class="anim c-op" style="margin:0 4px;">·</span>
+                        <span id="pb1" class="anim c-op">(</span>
+                        <span id="p21_1" class="anim c-21">21</span>
+                        <span id="min1" class="anim math c-op" style="margin: 0 6px;">−</span>
+                        <span id="x1" class="anim math c-x">x</span>
+                        <span id="pb2" class="anim c-op">)</span>
+                        
+                        <span id="plus1" class="anim c-op" style="margin: 0 10px;">+</span>
                         
                         <div class="frac">
                             <div class="num"><span id="n90" class="anim c-90">90</span></div>
@@ -528,18 +579,45 @@
                         <span id="x2" class="anim math c-x">x</span>
                       </div>`
             },
-            {
+            { // 6: Igualar a 42% de 21 litros (Prévia piscando)
                 text: "Isso tudo deve resultar novamente em um tanque cheio de 21 litros, mas agora com a concentração final desejada de 42%:",
                 html: `<div class="row">
-                        <div class="frac" style="transform: scale(0.85); margin: 0 2px;">
+                        <div class="frac" style="transform: scale(0.9); margin: 0 2px;">
                             <div class="num"><span id="n18" class="anim c-18">18</span></div>
                             <div class="den"><span id="d100_1" class="anim c-op">100</span></div>
                         </div>
-                        <span id="pb1" class="anim c-op">(</span><span id="p21_1" class="anim c-21">21</span><span id="min1" class="anim math c-op" style="margin: 0 2px;">−</span><span id="x1" class="anim math c-x">x</span><span id="pb2" class="anim c-op">)</span>
+                        <span id="pb1" class="anim c-op">(</span><span id="p21_1" class="anim c-21">21</span><span id="min1" class="anim math c-op" style="margin: 0 4px;">−</span><span id="x1" class="anim math c-x">x</span><span id="pb2" class="anim c-op">)</span>
                         
                         <span id="plus1" class="anim c-op" style="margin: 0 8px;">+</span>
                         
-                        <div class="frac" style="transform: scale(0.85); margin: 0 2px;">
+                        <div class="frac" style="transform: scale(0.9); margin: 0 2px;">
+                            <div class="num"><span id="n90" class="anim c-90">90</span></div>
+                            <div class="den"><span id="d100_2" class="anim c-op">100</span></div>
+                        </div>
+                        <span id="x2" class="anim math c-x">x</span>
+                        
+                        <span id="eq" class="anim c-op blink-me" style="margin: 0 12px;"> = </span>
+                        
+                        <div class="frac" style="transform: scale(0.9); margin: 0 2px;">
+                            <div class="num"><span id="n42" class="anim c-42 blink-me">42</span></div>
+                            <div class="den"><span id="d100_3" class="anim c-op blink-me">100</span></div>
+                        </div>
+                        <span id="dot3" class="anim c-op blink-me" style="margin:0 4px;">·</span>
+                        <span id="p21_2" class="anim c-21 blink-me">21</span>
+                      </div>`
+            },
+            { // 7: Igualar a 42% de 21 litros (Execução)
+                text: "Isso tudo deve resultar novamente em um tanque cheio de 21 litros, mas agora com a concentração final desejada de 42%:",
+                html: `<div class="row">
+                        <div class="frac" style="transform: scale(0.9); margin: 0 2px;">
+                            <div class="num"><span id="n18" class="anim c-18">18</span></div>
+                            <div class="den"><span id="d100_1" class="anim c-op">100</span></div>
+                        </div>
+                        <span id="pb1" class="anim c-op">(</span><span id="p21_1" class="anim c-21">21</span><span id="min1" class="anim math c-op" style="margin: 0 4px;">−</span><span id="x1" class="anim math c-x">x</span><span id="pb2" class="anim c-op">)</span>
+                        
+                        <span id="plus1" class="anim c-op" style="margin: 0 8px;">+</span>
+                        
+                        <div class="frac" style="transform: scale(0.9); margin: 0 2px;">
                             <div class="num"><span id="n90" class="anim c-90">90</span></div>
                             <div class="den"><span id="d100_2" class="anim c-op">100</span></div>
                         </div>
@@ -547,7 +625,7 @@
                         
                         <span id="eq" class="anim c-op" style="margin: 0 12px;"> = </span>
                         
-                        <div class="frac" style="transform: scale(0.85); margin: 0 2px;">
+                        <div class="frac" style="transform: scale(0.9); margin: 0 2px;">
                             <div class="num"><span id="n42" class="anim c-42">42</span></div>
                             <div class="den"><span id="d100_3" class="anim c-op">100</span></div>
                         </div>
@@ -555,10 +633,40 @@
                         <span id="p21_2" class="anim c-21">21</span>
                       </div>`
             },
-            {
+            { // 8: Multiplicar todos os termos por 100 (Prévia com destaque nos denominadores)
                 text: "Para eliminar as frações, multiplicamos TODOS os termos da equação por 100:",
                 html: `<div class="row">
-                        <div class="frac" style="transform: scale(0.85); margin: 0 2px;">
+                        <div class="frac" style="transform: scale(0.9); margin: 0 2px; position:relative;">
+                            <span class="anim math" style="position:absolute; top:-28px; font-size:1.1rem; color:#fcd34d; font-weight:bold;">×100</span>
+                            <div class="num"><span id="n18" class="anim c-18">18</span></div>
+                            <div class="den"><span id="d100_1" class="anim c-op hl-yellow">100</span></div>
+                        </div>
+                        <span id="pb1" class="anim c-op">(</span><span id="p21_1" class="anim c-21">21</span><span id="min1" class="anim math c-op" style="margin: 0 4px;">−</span><span id="x1" class="anim math c-x">x</span><span id="pb2" class="anim c-op">)</span>
+                        
+                        <span id="plus1" class="anim c-op" style="margin: 0 8px;">+</span>
+                        
+                        <div class="frac" style="transform: scale(0.9); margin: 0 2px; position:relative;">
+                            <span class="anim math" style="position:absolute; top:-28px; font-size:1.1rem; color:#fcd34d; font-weight:bold;">×100</span>
+                            <div class="num"><span id="n90" class="anim c-90">90</span></div>
+                            <div class="den"><span id="d100_2" class="anim c-op hl-yellow">100</span></div>
+                        </div>
+                        <span id="x2" class="anim math c-x">x</span>
+                        
+                        <span id="eq" class="anim c-op" style="margin: 0 12px;"> = </span>
+                        
+                        <div class="frac" style="transform: scale(0.9); margin: 0 2px; position:relative;">
+                            <span class="anim math" style="position:absolute; top:-28px; font-size:1.1rem; color:#fcd34d; font-weight:bold;">×100</span>
+                            <div class="num"><span id="n42" class="anim c-42">42</span></div>
+                            <div class="den"><span id="d100_3" class="anim c-op hl-yellow">100</span></div>
+                        </div>
+                        <span id="dot3" class="anim c-op" style="margin:0 4px;">·</span>
+                        <span id="p21_2" class="anim c-21">21</span>
+                      </div>`
+            },
+            { // 9: Multiplicar todos os termos por 100 (Execução)
+                text: "Para eliminar as frações, multiplicamos TODOS os termos da equação por 100:",
+                html: `<div class="row">
+                        <div class="frac" style="transform: scale(0.9); margin: 0 2px;">
                             <div class="num">
                                 <span id="m100_1" class="anim c-hl">100</span>
                                 <span id="mdot_1" class="anim c-hl" style="margin: 0 4px;">·</span>
@@ -566,11 +674,11 @@
                             </div>
                             <div class="den"><span id="d100_1" class="anim c-op">100</span></div>
                         </div>
-                        <span id="pb1" class="anim c-op">(</span><span id="p21_1" class="anim c-21">21</span><span id="min1" class="anim math c-op" style="margin: 0 2px;">−</span><span id="x1" class="anim math c-x">x</span><span id="pb2" class="anim c-op">)</span>
+                        <span id="pb1" class="anim c-op">(</span><span id="p21_1" class="anim c-21">21</span><span id="min1" class="anim math c-op" style="margin: 0 4px;">−</span><span id="x1" class="anim math c-x">x</span><span id="pb2" class="anim c-op">)</span>
                         
                         <span id="plus1" class="anim c-op" style="margin: 0 8px;">+</span>
                         
-                        <div class="frac" style="transform: scale(0.85); margin: 0 2px;">
+                        <div class="frac" style="transform: scale(0.9); margin: 0 2px;">
                             <div class="num">
                                 <span id="m100_2" class="anim c-hl">100</span>
                                 <span id="mdot_2" class="anim c-hl" style="margin: 0 4px;">·</span>
@@ -582,7 +690,7 @@
                         
                         <span id="eq" class="anim c-op" style="margin: 0 12px;"> = </span>
                         
-                        <div class="frac" style="transform: scale(0.85); margin: 0 2px;">
+                        <div class="frac" style="transform: scale(0.9); margin: 0 2px;">
                             <div class="num">
                                 <span id="m100_3" class="anim c-hl">100</span>
                                 <span id="mdot_3" class="anim c-hl" style="margin: 0 4px;">·</span>
@@ -594,7 +702,70 @@
                         <span id="p21_2" class="anim c-21">21</span>
                       </div>`
             },
-            {
+            { // 10: Cortar 100 de cima com 100 de baixo (Prévia com traços de corte)
+                text: "Com isso, podemos cortar o 100 de cima com o 100 de baixo (pois 100 ÷ 100 = 1). A equação fica livre dos denominadores:",
+                html: `<div class="row">
+                        <div class="frac" style="transform: scale(0.9); margin: 0 2px;">
+                            <div class="num">
+                                <span style="position:relative; display:inline-flex; align-items:center;">
+                                    <span id="m100_1" class="anim c-hl hl-yellow">100</span>
+                                    <svg class="anim" style="position:absolute; inset:-2px; width:calc(100% + 4px); height:calc(100% + 4px); overflow:visible; pointer-events:none; z-index:20;"><line x1="0" y1="100%" x2="100%" y2="0" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/></svg>
+                                </span>
+                                <span id="mdot_1" class="anim c-hl" style="margin: 0 4px;">·</span>
+                                <span id="n18" class="anim c-18">18</span>
+                            </div>
+                            <div class="den">
+                                <span style="position:relative; display:inline-flex; align-items:center;">
+                                    <span id="d100_1" class="anim c-op hl-yellow">100</span>
+                                    <svg class="anim" style="position:absolute; inset:-2px; width:calc(100% + 4px); height:calc(100% + 4px); overflow:visible; pointer-events:none; z-index:20;"><line x1="0" y1="100%" x2="100%" y2="0" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/></svg>
+                                </span>
+                            </div>
+                        </div>
+                        <span id="pb1" class="anim c-op">(</span><span id="p21_1" class="anim c-21">21</span><span id="min1" class="anim math c-op" style="margin: 0 4px;">−</span><span id="x1" class="anim math c-x">x</span><span id="pb2" class="anim c-op">)</span>
+                        
+                        <span id="plus1" class="anim c-op" style="margin: 0 8px;">+</span>
+                        
+                        <div class="frac" style="transform: scale(0.9); margin: 0 2px;">
+                            <div class="num">
+                                <span style="position:relative; display:inline-flex; align-items:center;">
+                                    <span id="m100_2" class="anim c-hl hl-yellow">100</span>
+                                    <svg class="anim" style="position:absolute; inset:-2px; width:calc(100% + 4px); height:calc(100% + 4px); overflow:visible; pointer-events:none; z-index:20;"><line x1="0" y1="100%" x2="100%" y2="0" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/></svg>
+                                </span>
+                                <span id="mdot_2" class="anim c-hl" style="margin: 0 4px;">·</span>
+                                <span id="n90" class="anim c-90">90</span>
+                            </div>
+                            <div class="den">
+                                <span style="position:relative; display:inline-flex; align-items:center;">
+                                    <span id="d100_2" class="anim c-op hl-yellow">100</span>
+                                    <svg class="anim" style="position:absolute; inset:-2px; width:calc(100% + 4px); height:calc(100% + 4px); overflow:visible; pointer-events:none; z-index:20;"><line x1="0" y1="100%" x2="100%" y2="0" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/></svg>
+                                </span>
+                            </div>
+                        </div>
+                        <span id="x2" class="anim math c-x">x</span>
+                        
+                        <span id="eq" class="anim c-op" style="margin: 0 12px;"> = </span>
+                        
+                        <div class="frac" style="transform: scale(0.9); margin: 0 2px;">
+                            <div class="num">
+                                <span style="position:relative; display:inline-flex; align-items:center;">
+                                    <span id="m100_3" class="anim c-hl hl-yellow">100</span>
+                                    <svg class="anim" style="position:absolute; inset:-2px; width:calc(100% + 4px); height:calc(100% + 4px); overflow:visible; pointer-events:none; z-index:20;"><line x1="0" y1="100%" x2="100%" y2="0" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/></svg>
+                                </span>
+                                <span id="mdot_3" class="anim c-hl" style="margin: 0 4px;">·</span>
+                                <span id="n42" class="anim c-42">42</span>
+                            </div>
+                            <div class="den">
+                                <span style="position:relative; display:inline-flex; align-items:center;">
+                                    <span id="d100_3" class="anim c-op hl-yellow">100</span>
+                                    <svg class="anim" style="position:absolute; inset:-2px; width:calc(100% + 4px); height:calc(100% + 4px); overflow:visible; pointer-events:none; z-index:20;"><line x1="0" y1="100%" x2="100%" y2="0" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/></svg>
+                                </span>
+                            </div>
+                        </div>
+                        <span id="dot3" class="anim c-op" style="margin:0 4px;">·</span>
+                        <span id="p21_2" class="anim c-21">21</span>
+                      </div>`
+            },
+            { // 11: Cortar 100 de cima com 100 de baixo (Execução - sem denominadores)
                 text: "Com isso, podemos cortar o 100 de cima com o 100 de baixo (pois 100 ÷ 100 = 1). A equação fica livre dos denominadores:",
                 html: `<div class="row">
                         <span id="n18" class="anim c-18">18</span>
@@ -617,7 +788,36 @@
                         <span id="p21_2" class="anim c-21">21</span>
                       </div>`
             },
-            {
+            { // 12: Distributiva (Prévia com setas do chuveirinho alinhadas)
+                text: "Agora, aplicamos a propriedade distributiva (o 'chuveirinho') no primeiro termo. Multiplicamos o 18 por 21 e também por -x:",
+                html: `<div class="row">
+                        <div id="dist-left" style="position:relative; display:inline-flex; align-items:center;">
+                            <svg class="anim" style="position:absolute; top:-32px; left:0; width:100%; height:35px; overflow:visible; z-index:10; pointer-events:none;">
+                                <path id="path-l1" d="M 18,30 Q 50,-5 82,30" fill="none" stroke="#ef4444" stroke-width="3" marker-end="url(#arr-red)"/>
+                                <path id="path-l2" d="M 18,30 Q 80,-22 142,30" fill="none" stroke="#ef4444" stroke-width="3" marker-end="url(#arr-red)"/>
+                            </svg>
+                            <span id="n18" class="anim c-18 hl-yellow">18</span>
+                            <span id="dot1" class="anim c-op" style="margin:0 4px;">·</span>
+                            <span id="pb1" class="anim c-op">(</span>
+                            <span id="p21_1" class="anim c-21 hl-yellow">21</span>
+                            <span id="min1" class="anim math c-op hl-yellow" style="margin: 0 4px;">−</span>
+                            <span id="x1" class="anim math c-x hl-yellow">x</span>
+                            <span id="pb2" class="anim c-op">)</span>
+                        </div>
+                        
+                        <span id="plus1" class="anim c-op" style="margin: 0 10px;">+</span>
+                        
+                        <span id="n90" class="anim c-90">90</span>
+                        <span id="x2" class="anim math c-x">x</span>
+                        
+                        <span id="eq" class="anim c-op" style="margin: 0 12px;"> = </span>
+                        
+                        <span id="n42" class="anim c-42">42</span>
+                        <span id="dot3" class="anim c-op" style="margin:0 4px;">·</span>
+                        <span id="p21_2" class="anim c-21">21</span>
+                      </div>`
+            },
+            { // 13: Distributiva (Execução)
                 text: "Agora, aplicamos a propriedade distributiva (o 'chuveirinho') no primeiro termo. Multiplicamos o 18 por 21 e também por -x:",
                 html: `<div class="row">
                         <span id="n18" class="anim c-18">18</span>
@@ -641,7 +841,38 @@
                         <span id="p21_2" class="anim c-21">21</span>
                       </div>`
             },
-            {
+            { // 14: Agrupar termos com x (Prévia com chave inferior)
+                text: "Agrupamos os termos com 'x'. Se temos 90x e subtraímos 18x, ficamos com 72x:",
+                html: `<div class="row">
+                        <span id="n18" class="anim c-18">18</span>
+                        <span id="dot1" class="anim c-op" style="margin:0 4px;">·</span>
+                        <span id="p21_1" class="anim c-21">21</span>
+                        
+                        <span style="position:relative; display:inline-flex; flex-direction:column; align-items:center;">
+                            <div style="display:flex; align-items:center;">
+                                <span id="min1" class="anim math c-op hl-yellow" style="margin: 0 8px;">−</span>
+                                <span id="n18_copy" class="anim c-18 hl-yellow">18</span>
+                                <span id="x1" class="anim math c-x hl-yellow">x</span>
+                                <span id="plus1" class="anim c-op hl-yellow" style="margin: 0 10px;">+</span>
+                                <span id="n90" class="anim c-90 hl-yellow">90</span>
+                                <span id="x2" class="anim math c-x hl-yellow">x</span>
+                            </div>
+                            <div class="anim" style="position:absolute; top:100%; left:0; width:100%; display:flex; flex-direction:column; align-items:center; pointer-events:none;">
+                                <svg width="90%" height="15" viewBox="0 0 100 15" preserveAspectRatio="none" style="margin-top:2px; overflow:visible;">
+                                    <path d="M0,0 C0,15 45,15 50,15 C55,15 100,15 100,0" fill="none" stroke="#fcd34d" stroke-width="2"/>
+                                </svg>
+                                <span class="math" style="color:#fcd34d; font-size:1.4rem; font-weight:bold; margin-top:4px;">+ 72x</span>
+                            </div>
+                        </span>
+                        
+                        <span id="eq" class="anim c-op" style="margin: 0 12px;"> = </span>
+                        
+                        <span id="n42" class="anim c-42">42</span>
+                        <span id="dot3" class="anim c-op" style="margin:0 4px;">·</span>
+                        <span id="p21_2" class="anim c-21">21</span>
+                      </div>`
+            },
+            { // 15: Agrupar termos com x (Execução)
                 text: "Agrupamos os termos com 'x'. Se temos 90x e subtraímos 18x, ficamos com 72x:",
                 html: `<div class="row">
                         <span id="n18" class="anim c-18">18</span>
@@ -660,7 +891,26 @@
                         <span id="p21_2" class="anim c-21">21</span>
                       </div>`
             },
-            {
+            { // 16: Passar 18 · 21 para a direita (Prévia)
+                text: "Vamos isolar o 'x'. O bloco '18 · 21' passa para o lado direito da equação com o sinal invertido (negativo):",
+                html: `<div class="row">
+                        <span id="n18" class="anim c-18 hl-yellow">18</span>
+                        <span id="dot1" class="anim c-op hl-yellow" style="margin:0 4px;">·</span>
+                        <span id="p21_1" class="anim c-21 hl-yellow">21</span>
+                        
+                        <span id="plus1" class="anim c-op" style="margin: 0 10px;">+</span>
+                        
+                        <span id="n72" class="anim c-x" style="color:#fff;">72</span>
+                        <span id="x1" class="anim math c-x">x</span>
+                        
+                        <span id="eq" class="anim c-op" style="margin: 0 12px;"> = </span>
+                        
+                        <span id="n42" class="anim c-42">42</span>
+                        <span id="dot3" class="anim c-op" style="margin:0 4px;">·</span>
+                        <span id="p21_2" class="anim c-21">21</span>
+                      </div>`
+            },
+            { // 17: Passar 18 · 21 para a direita (Execução)
                 text: "Vamos isolar o 'x'. O bloco '18 · 21' passa para o lado direito da equação com o sinal invertido (negativo):",
                 html: `<div class="row">
                         <span id="n72" class="anim c-x" style="color:#fff;">72</span>
@@ -679,7 +929,26 @@
                         <span id="p21_1" class="anim c-21">21</span>
                       </div>`
             },
-            {
+            { // 18: Colocar 21 em evidência (Prévia destacando o fator comum 21)
+                text: "DICA DA OBMEP: Não faça contas enormes! O número 21 multiplica dos dois lados, então podemos colocá-lo em evidência:",
+                html: `<div class="row">
+                        <span id="n72" class="anim c-x" style="color:#fff;">72</span>
+                        <span id="x1" class="anim math c-x">x</span>
+                        
+                        <span id="eq" class="anim c-op" style="margin: 0 12px;"> = </span>
+                        
+                        <span id="n42" class="anim c-42">42</span>
+                        <span id="dot3" class="anim c-op hl-yellow" style="margin:0 4px;">·</span>
+                        <span id="p21_2" class="anim c-21 hl-yellow">21</span>
+                        
+                        <span id="new_min" class="anim c-op" style="margin: 0 10px;">−</span>
+                        
+                        <span id="n18" class="anim c-18">18</span>
+                        <span id="dot1" class="anim c-op hl-yellow" style="margin:0 4px;">·</span>
+                        <span id="p21_1" class="anim c-21 hl-yellow">21</span>
+                      </div>`
+            },
+            { // 19: Colocar 21 em evidência (Execução)
                 text: "DICA DA OBMEP: Não faça contas enormes! O número 21 multiplica dos dois lados, então podemos colocá-lo em evidência:",
                 html: `<div class="row">
                         <span id="n72" class="anim c-x" style="color:#fff;">72</span>
@@ -697,7 +966,35 @@
                         <span id="p21_2" class="anim c-21">21</span>
                       </div>`
             },
-            {
+            { // 20: Subtração dentro dos parênteses (Prévia com chave SVG)
+                text: "Resolvemos a subtração simples dentro dos parênteses (42 - 18 = 24):",
+                html: `<div class="row">
+                        <span id="n72" class="anim c-x" style="color:#fff;">72</span>
+                        <span id="x1" class="anim math c-x">x</span>
+                        
+                        <span id="eq" class="anim c-op" style="margin: 0 12px;"> = </span>
+                        
+                        <span style="position:relative; display:inline-flex; flex-direction:column; align-items:center;">
+                            <div style="display:flex; align-items:center;">
+                                <span id="pb3" class="anim c-op hl-yellow">(</span>
+                                <span id="n42" class="anim c-42 hl-yellow">42</span>
+                                <span id="new_min" class="anim c-op hl-yellow" style="margin: 0 8px;">−</span>
+                                <span id="n18" class="anim c-18 hl-yellow">18</span>
+                                <span id="pb4" class="anim c-op hl-yellow">)</span>
+                            </div>
+                            <div class="anim" style="position:absolute; top:100%; left:0; width:100%; display:flex; flex-direction:column; align-items:center; pointer-events:none;">
+                                <svg width="100%" height="15" viewBox="0 0 100 15" preserveAspectRatio="none" style="margin-top:2px; overflow:visible;">
+                                    <path d="M0,0 C0,15 45,15 50,15 C55,15 100,15 100,0" fill="none" stroke="#fcd34d" stroke-width="2"/>
+                                </svg>
+                                <span class="math" style="color:#fcd34d; font-size:1.5rem; font-weight:bold; margin-top:4px;">24</span>
+                            </div>
+                        </span>
+                        
+                        <span id="dot3" class="anim c-op" style="margin:0 8px;">·</span>
+                        <span id="p21_2" class="anim c-21">21</span>
+                      </div>`
+            },
+            { // 21: Subtração dentro dos parênteses (Execução)
                 text: "Resolvemos a subtração simples dentro dos parênteses (42 - 18 = 24):",
                 html: `<div class="row">
                         <span id="n72" class="anim c-x" style="color:#fff;">72</span>
@@ -711,7 +1008,21 @@
                         <span id="p21_2" class="anim c-21">21</span>
                       </div>`
             },
-            {
+            { // 22: Passar o 72 dividindo (Prévia)
+                text: "Agora passamos o 72, que está multiplicando o 'x', para o outro lado da equação dividindo:",
+                html: `<div class="row">
+                        <span id="n72" class="anim c-x hl-yellow" style="color:#fff;">72</span>
+                        <span id="x1" class="anim math c-x">x</span>
+                        
+                        <span id="eq" class="anim c-op" style="margin: 0 12px;"> = </span>
+                        
+                        <span id="n24" class="anim c-res">24</span>
+                        
+                        <span id="dot3" class="anim c-op" style="margin:0 8px;">·</span>
+                        <span id="p21_2" class="anim c-21">21</span>
+                      </div>`
+            },
+            { // 23: Passar o 72 dividindo (Execução)
                 text: "Agora passamos o 72, que está multiplicando o 'x', para o outro lado da equação dividindo:",
                 html: `<div class="row">
                         <span id="x1" class="anim math c-x">x</span>
@@ -728,7 +1039,34 @@
                         </div>
                       </div>`
             },
-            {
+            { // 24: Simplificar 24 e 72 por 24 (Prévia com traços de corte)
+                text: "Podemos simplificar a fração! Note que 72 é exatamente o triplo de 24 (24 × 3). Ao simplificar por 24, sobra apenas um 3 embaixo:",
+                html: `<div class="row">
+                        <span id="x1" class="anim math c-x">x</span>
+                        
+                        <span id="eq" class="anim c-op" style="margin: 0 15px;"> = </span>
+                        
+                        <div class="frac">
+                            <div class="num">
+                                <span style="position:relative; display:inline-flex; flex-direction:column; align-items:center;">
+                                    <span class="anim math" style="position:absolute; top:-28px; font-size:1.1rem; color:#fcd34d; font-weight:bold;">÷24</span>
+                                    <span id="n24" class="anim c-res hl-yellow">24</span>
+                                    <svg class="anim" style="position:absolute; inset:-2px; width:calc(100% + 4px); height:calc(100% + 4px); overflow:visible; pointer-events:none; z-index:20;"><line x1="0" y1="100%" x2="100%" y2="0" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/></svg>
+                                </span>
+                                <span id="dot3" class="anim c-op" style="margin:0 8px;">·</span>
+                                <span id="p21_2" class="anim c-21">21</span>
+                            </div>
+                            <div class="den">
+                                <span style="position:relative; display:inline-flex; flex-direction:column; align-items:center;">
+                                    <span id="n72" class="anim c-op hl-yellow" style="color:#fff;">72</span>
+                                    <svg class="anim" style="position:absolute; inset:-2px; width:calc(100% + 4px); height:calc(100% + 4px); overflow:visible; pointer-events:none; z-index:20;"><line x1="0" y1="100%" x2="100%" y2="0" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/></svg>
+                                    <span class="anim math" style="position:absolute; bottom:-28px; font-size:1.1rem; color:#fcd34d; font-weight:bold;">÷24</span>
+                                </span>
+                            </div>
+                        </div>
+                      </div>`
+            },
+            { // 25: Simplificar 24 e 72 por 24 (Execução)
                 text: "Podemos simplificar a fração! Note que 72 é exatamente o triplo de 24 (24 × 3). Ao simplificar por 24, sobra apenas um 3 embaixo:",
                 html: `<div class="row">
                         <span id="x1" class="anim math c-x">x</span>
@@ -743,7 +1081,22 @@
                         </div>
                       </div>`
             },
-            {
+            { // 26: Dividir 21 por 3 (Prévia)
+                text: "E finalmente, dividindo 21 por 3, encontramos a quantidade de litros que deve ser substituída!",
+                html: `<div class="row">
+                        <span id="x1" class="anim math c-x">x</span>
+                        
+                        <span id="eq" class="anim c-op" style="margin: 0 15px;"> = </span>
+                        
+                        <div class="frac">
+                            <div class="num">
+                                <span id="p21_2" class="anim c-21 hl-yellow">21</span>
+                            </div>
+                            <div class="den"><span id="n72" class="anim c-op hl-yellow" style="color:#fff;">3</span></div>
+                        </div>
+                      </div>`
+            },
+            { // 27: Dividir 21 por 3 (Execução Final)
                 text: "E finalmente, dividindo 21 por 3, encontramos a quantidade de litros que deve ser substituída!",
                 html: `<div class="row">
                         <span id="x1" class="anim math c-x" style="font-size: 2.5rem;">x</span>
@@ -762,7 +1115,6 @@
         let isAnimating = false;
         let audioCtx;
 
-        // Áudio (Sons)
         function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
         
         function playTone(freq, type, duration, vol) {
@@ -789,7 +1141,6 @@
             setTimeout(() => playTone(880, 'triangle', 0.5, 0.15), 300);
         }
 
-        // Confetes
         function createConfetti() {
             const colors = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#a855f7'];
             for (let i = 0; i < 60; i++) {
@@ -803,7 +1154,6 @@
             }
         }
 
-        // Criar barra de progresso
         const progressContainer = document.getElementById('progress-bar');
         stepsData.forEach((_, i) => {
             const dot = document.createElement('div');
@@ -811,7 +1161,29 @@
             progressContainer.appendChild(dot);
         });
 
-        // Motor de Animação FLIP
+        // Calcula dinamicamente as coordenadas exatas das setas do chuveirinho (Passo 12)
+        function updateDistributiveArrows() {
+            const pairs = [
+                { container: 'dist-left', from: 'n18', to1: 'p21_1', to2: 'x1', p1: 'path-l1', p2: 'path-l2' }
+            ];
+            pairs.forEach(({ container, from, to1, to2, p1, p2 }) => {
+                const box = document.getElementById(container);
+                const elFrom = document.getElementById(from);
+                const elTo1 = document.getElementById(to1);
+                const elTo2 = document.getElementById(to2);
+                const path1 = document.getElementById(p1);
+                const path2 = document.getElementById(p2);
+                if (box && elFrom && elTo1 && elTo2 && path1 && path2) {
+                    const x0 = elFrom.offsetLeft + elFrom.offsetWidth / 2;
+                    const x1 = elTo1.offsetLeft + elTo1.offsetWidth / 2;
+                    const x2 = elTo2.offsetLeft + elTo2.offsetWidth / 2;
+                    path1.setAttribute('d', `M ${x0},30 Q ${(x0 + x1) / 2},-5 ${x1},30`);
+                    path2.setAttribute('d', `M ${x0},30 Q ${(x0 + x2) / 2},-22 ${x2},30`);
+                }
+            });
+        }
+
+        // Motor de Animação Simplificado - Acionado a cada clique sem pausas automáticas
         function renderStep(idx, goingForward) {
             if (isAnimating) return;
             isAnimating = true;
@@ -820,22 +1192,27 @@
             const exp = document.getElementById('explanation');
             const data = stepsData[idx];
 
-            exp.style.opacity = '0';
-            setTimeout(() => {
-                exp.textContent = data.text;
-                exp.style.opacity = '1';
-            }, 300);
+            // Atualiza o texto imediatamente
+            exp.textContent = data.text;
+            exp.style.opacity = '1';
 
+            // Registra posições antigas
             const oldEls = document.querySelectorAll('.anim');
             const rects = new Map();
-            oldEls.forEach(el => rects.set(el.id, el.getBoundingClientRect()));
+            oldEls.forEach(el => {
+                if (el.id) rects.set(el.id, el.getBoundingClientRect());
+            });
 
+            // Troca o HTML
             board.innerHTML = data.html;
+
+            // Ajusta as setas da distributiva caso estejam presentes no passo atual
+            updateDistributiveArrows();
 
             const newEls = document.querySelectorAll('.anim');
             
             newEls.forEach(el => {
-                const oldRect = rects.get(el.id);
+                const oldRect = el.id ? rects.get(el.id) : null;
                 if (oldRect) {
                     const newRect = el.getBoundingClientRect();
                     const dx = oldRect.left - newRect.left;
@@ -852,7 +1229,7 @@
                     el.style.opacity = '0';
                     el.style.transform = 'scale(0.5)';
                     el.style.transition = 'none';
-                    el.getBoundingClientRect(); 
+                    el.getBoundingClientRect(); // Força reflow
                     el.style.transition = 'opacity 0.8s ease, transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)';
                     el.style.opacity = '1';
                     el.style.transform = 'scale(1)';
@@ -860,7 +1237,7 @@
             });
 
             oldEls.forEach(el => {
-                if (!document.getElementById(el.id)) {
+                if (el.id && !document.getElementById(el.id)) {
                     const clone = el.cloneNode(true);
                     const rect = rects.get(el.id);
                     clone.style.position = 'fixed';
@@ -935,6 +1312,8 @@
             if (touchEndX < touchStartX - 50) nextStep();
             if (touchEndX > touchStartX + 50) prevStep();
         }, {passive: true});
+
+        window.addEventListener('resize', updateDistributiveArrows);
 
         document.addEventListener("DOMContentLoaded", () => {
             document.getElementById('board').innerHTML = stepsData[0].html;
