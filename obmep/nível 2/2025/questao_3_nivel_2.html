@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><script src="https://myhub.ia.br/canvas-vendor/tailwind.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resolução OBMEP Nível 2 Animada - Questão 3</title>
+    <style>
+        /* Base e Reset - Paleta Rosa/Vinho Nível 2 + Tipografia Ampliada para Celular (YouTube) */
+        body { 
+            margin: 0; 
+            background-color: #1a0b14; 
+            color: #fdf2f8; 
+            font-family: system-ui, -apple-system, sans-serif; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            overflow: hidden; 
+        }
+
+        /* Ferramentas do Professor */
+        :root { --pen-color: #f43f5e; --pen-bg: #4c0519; }
+        .top-bar { position: fixed; top: 1rem; left: 1rem; display: flex; gap: 0.6rem; z-index: 200; }
+        .tool-group { position: relative; }
+        .top-btn { background: #2e1222; color: #f9a8d4; border: 1px solid #592242; padding: 0.5rem 0.9rem; border-radius: 0.5rem; cursor: pointer; transition: all 0.2s; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 0.4rem; text-decoration: none; font-family: inherit; }
+        .top-btn:hover { background: #451a33; color: #fff; }
+        .top-btn.active-pen { background: var(--pen-bg); border-color: var(--pen-color); color: var(--pen-color); box-shadow: 0 0 12px var(--pen-color); }
+        .top-btn.active-eraser { background: #451a03; border-color: #fbbf24; color: #fbbf24; box-shadow: 0 0 12px rgba(251, 191, 36, 0.4); }
+        
+        .tool-menu { position: absolute; top: calc(100% + 0.5rem); left: 0; background: #2e1222; border: 1px solid #592242; border-radius: 0.5rem; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.75rem; box-shadow: 0 4px 6px rgba(0,0,0,0.3); opacity: 1; transition: opacity 0.2s; pointer-events: auto; min-width: 140px; }
+        .tool-menu.hidden { opacity: 0; pointer-events: none; }
+        .menu-row { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #fbcfe8; }
+        .color-btn { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.2s; }
+        .color-btn:hover { transform: scale(1.1); }
+        .color-btn.active { border-color: #fff; box-shadow: 0 0 8px currentColor; }
+        input[type="range"] { flex: 1; width: 100%; cursor: pointer; }
+
+        .webcam-box { position: fixed; top: 16px; left: calc(100vw - 176px); width: 160px; height: 120px; min-width: 100px; min-height: 80px; background: rgba(26, 11, 20, 0.45); border: 2px dashed #833260; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; color: #d68cb8; font-size: 0.9rem; z-index: 100; backdrop-filter: blur(4px); user-select: none; touch-action: none; }
+        
+        .resize-handle { position: absolute; width: 14px; height: 14px; background: #833260; border: 2px solid #fbcfe8; border-radius: 50%; z-index: 10; transition: transform 0.2s; }
+        .resize-handle:hover { transform: scale(1.3); background: #ec4899; }
+        .resize-handle.nw { top: -7px; left: -7px; cursor: nwse-resize; }
+        .resize-handle.ne { top: -7px; right: -7px; cursor: nesw-resize; }
+        .resize-handle.sw { bottom: -7px; left: -7px; cursor: nesw-resize; }
+        .resize-handle.se { bottom: -7px; right: -7px; cursor: nwse-resize; }
+        
+        #draw-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 150; }
+        
+        /* Layout Principal Ampliado para Leitura Confortável no Celular */
+        .container { 
+            background: #2b1120; 
+            padding: 1.5rem 2.2rem; 
+            border-radius: 1rem; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65); 
+            max-width: 1180px; 
+            width: 95%; 
+            border: 1px solid #592242; 
+            position: relative; 
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Cabeçalho */
+        .header { text-align: center; margin-bottom: 0.9rem; border-bottom: 2px solid #ec4899; padding-bottom: 0.6rem; }
+        .header h1 { margin: 0; font-size: 1.7rem; color: #f472b6; letter-spacing: 1px; text-transform: uppercase; }
+        
+        /* Questão com Fonte Maior e Ilustração Ampliada */
+        .question-box { 
+            background: #1a0b14; 
+            padding: 1rem 1.4rem; 
+            border-left: 5px solid #f472b6; 
+            border-radius: 0.6rem; 
+            margin-bottom: 0.9rem; 
+            font-size: 1.32rem; 
+            line-height: 1.5; 
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+        }
+        .question-svg-mini {
+            flex-shrink: 0;
+            background: #fce7f3;
+            border: 2px solid #f472b6;
+            border-radius: 0.6rem;
+            padding: 0.4rem 0.6rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+        }
+        .math-text { font-family: 'Times New Roman', Times, serif; font-style: italic; }
+
+        /* Área da Animação Ampliada */
+        .presentation-area {
+            background: #3d182e;
+            border-radius: 0.85rem;
+            border: 1px solid #6b2a50;
+            padding: 1.4rem 2rem;
+            min-height: 350px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: inset 0 4px 8px rgba(0,0,0,0.35);
+        }
+
+        .explanation {
+            text-align: center;
+            font-size: 1.48rem;
+            font-weight: 500;
+            color: #fbcfe8;
+            margin-bottom: 1.2rem;
+            min-height: 3.6rem;
+            line-height: 1.38;
+            transition: opacity 0.3s ease;
+        }
+
+        .board {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            font-size: 2.35rem;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        /* Estruturas Matemáticas Dinâmicas */
+        .row { display: flex; align-items: center; justify-content: center; gap: 0; }
+        .board-split { display: flex; align-items: center; justify-content: center; gap: 2.8rem; width: 100%; flex-wrap: wrap; }
+        .geo-card {
+            background: rgba(26, 11, 20, 0.65);
+            border: 2px solid #752d57;
+            border-radius: 0.85rem;
+            padding: 0.6rem 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+        }
+        .frac { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 10px; }
+        .num { border-bottom: 3px solid #fdf2f8; padding: 2px 10px; display: flex; align-items: center; justify-content: center; }
+        .den { padding: 2px 10px; display: flex; align-items: center; justify-content: center; }
+        
+        .anim { 
+            display: inline-block; 
+            white-space: nowrap; 
+            will-change: transform, opacity;
+        }
+        .math { font-style: italic; }
+        
+        /* Barra de Progresso */
+        .progress {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 9px;
+            margin-top: 1rem;
+        }
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #592242;
+            transition: background 0.3s, transform 0.3s;
+        }
+        .dot.active {
+            background: #ec4899;
+            transform: scale(1.35);
+            box-shadow: 0 0 8px rgba(236, 72, 153, 0.7);
+        }
+
+        /* Confetti */
+        .confetti { position: absolute; width: 12px; height: 12px; background-color: #f00; opacity: 0; z-index: 50;}
+        @keyframes fall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* Opções de Resposta Ampliadas */
+        .options-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1.2rem;
+            margin-bottom: 0.9rem;
+            background: #1a0b14;
+            padding: 0.75rem 1rem;
+            border-left: 5px solid #ec4899;
+            border-radius: 0.6rem;
+            font-size: 1.3rem;
+            font-weight: 500;
+        }
+        .opt {
+            padding: 0.45rem 1.25rem;
+            border-radius: 0.5rem;
+            background: #2b1120;
+            color: #f9a8d4;
+            border: 1.5px solid #592242;
+            transition: all 0.5s ease;
+        }
+        .opt.correct {
+            background: #166534;
+            color: #fff;
+            border-color: #22c55e;
+            transform: scale(1.12);
+            box-shadow: 0 0 18px rgba(34,197,94,0.5);
+            font-weight: bold;
+        }
+
+        /* Cores Matemáticas Específicas */
+        .c-a { color: #38bdf8; font-weight: bold; }   /* Azul claro vibrante para dimensão 'a' */
+        .c-b { color: #c084fc; font-weight: bold; }   /* Lilás vibrante para dimensão 'b' */
+        .c-p { color: #fde047; font-weight: bold; }   /* Amarelo ouro para perímetros */
+        .c-op { color: #f9a8d4; }                     /* Rosa claro para operadores */
+        .c-hl { color: #fb7185; font-weight: bold; text-shadow: 0 0 10px rgba(251,113,133,0.65); }
+        .c-res { color: #34d399; font-weight: bold; } /* Verde esmeralda para resultados */
+
+        /* Classes de Destaque Controlado (Prévia Visual) */
+        @keyframes blink {
+            0%, 100% { opacity: 1; color: #fde047; text-shadow: 0 0 12px #fde047; transform: scale(1.12); }
+            50% { opacity: 0.4; color: inherit; text-shadow: none; transform: scale(1); }
+        }
+        .blink-me { animation: blink 1s ease-in-out infinite; display: inline-block; }
+
+        @keyframes pulse-svg {
+            0%, 100% { opacity: 1; filter: drop-shadow(0 0 10px #fde047); }
+            50% { opacity: 0.35; filter: none; }
+        }
+        .pulse-geo { animation: pulse-svg 1s ease-in-out infinite; }
+        
+        .hl-yellow { color: #fde047 !important; text-shadow: 0 0 14px rgba(253,224,71,0.9); transform: scale(1.12); z-index: 10; transition: all 0.3s; }
+    </style>
+</head>
+<body>
+    
+    <!-- Controles Topo -->
+    <div class="top-bar">
+        <a href="../../../index.html" class="top-btn" title="Ir para a Página Inicial">🏠 Página Inicial</a>
+        <a href="#" onclick="history.back(); return false;" class="top-btn" title="Página Anterior">⬅️ Voltar</a>
+
+        <div class="tool-group">
+            <button id="btn-pen" class="top-btn" title="Ativar/Desativar Caneta">🖌️ Caneta</button>
+            <div id="pen-menu" class="tool-menu hidden">
+                <div class="menu-row">
+                    <span class="color-btn active" data-color="#f43f5e" style="background:#f43f5e" title="Vermelho Laser"></span>
+                    <span class="color-btn" data-color="#22c55e" style="background:#22c55e" title="Verde Laser"></span>
+                </div>
+                <div class="menu-row">
+                    <label>Tamanho:</label>
+                    <input type="range" id="pen-size" min="1" max="15" value="4">
+                </div>
+            </div>
+        </div>
+        <div class="tool-group">
+            <button id="btn-eraser" class="top-btn" title="Ativar/Desativar Borracha">🧽 Borracha</button>
+            <div id="eraser-menu" class="tool-menu hidden">
+                <div class="menu-row">
+                    <label>Tamanho:</label>
+                    <input type="range" id="eraser-size" min="10" max="100" value="40">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Espaço da Câmera (Webcam) -->
+    <div id="webcam" class="webcam-box">
+        <span>📹 Espaço da Câmera</span>
+        <div class="resize-handle nw"></div>
+        <div class="resize-handle ne"></div>
+        <div class="resize-handle sw"></div>
+        <div class="resize-handle se"></div>
+    </div>
+
+    <!-- Lousa de Desenho Interativa -->
+    <canvas id="draw-canvas"></canvas>
+
+    <div class="container">
+        <div class="header">
+            <h1>Aula Prática — OBMEP (Nível 2)</h1>
+        </div>
+
+        <div class="question-box">
+            <div>
+                <strong>Questão 3:</strong> Uma folha retangular de papel, de perímetro igual a 50 cm, foi dobrada ao meio de duas maneiras diferentes, como mostra a figura. Em uma delas, o perímetro da folha dobrada é 35 cm. Qual é o perímetro da folha dobrada da outra maneira?
+            </div>
+            <!-- Ilustração Ampliada fiel à figura do enunciado -->
+            <div class="question-svg-mini" title="Figura do enunciado">
+                <svg width="225" height="125" viewBox="0 0 260 145">
+                    <!-- Folha Original à esquerda -->
+                    <rect x="8" y="48" width="66" height="46" fill="#dec474" stroke="#785c18" stroke-width="1.8"/>
+                    <!-- Setas de divisão -->
+                    <line x1="80" y1="64" x2="102" y2="45" stroke="#1e293b" stroke-width="2"/>
+                    <polygon points="104,43 97,44 101,50" fill="#1e293b"/>
+                    <line x1="80" y1="78" x2="102" y2="97" stroke="#1e293b" stroke-width="2"/>
+                    <polygon points="104,99 101,92 97,98" fill="#1e293b"/>
+                    <!-- Dobra 1 (Vertical) no topo -->
+                    <polygon points="110,16 140,11 140,57 110,62" fill="#dec474" stroke="#785c18" stroke-width="1.5"/>
+                    <polygon points="140,11 170,16 170,62 140,57" fill="#d4b863" stroke="#785c18" stroke-width="1.5"/>
+                    <line x1="140" y1="11" x2="140" y2="57" stroke="#1e293b" stroke-width="2" stroke-dasharray="3 2"/>
+                    <line x1="178" y1="36" x2="202" y2="36" stroke="#1e293b" stroke-width="2"/>
+                    <polygon points="205,36 198,32 198,40" fill="#1e293b"/>
+                    <!-- Resultado Dobra 1 -->
+                    <rect x="213" y="13" width="33" height="46" fill="#dec474" stroke="#785c18" stroke-width="1.8"/>
+                    <!-- Dobra 2 (Horizontal) embaixo -->
+                    <polygon points="110,84 176,84 180,107 114,107" fill="#dec474" stroke="#785c18" stroke-width="1.5"/>
+                    <polygon points="114,107 180,107 176,130 110,130" fill="#d4b863" stroke="#785c18" stroke-width="1.5"/>
+                    <line x1="114" y1="107" x2="180" y2="107" stroke="#1e293b" stroke-width="2" stroke-dasharray="3 2"/>
+                    <line x1="185" y1="107" x2="204" y2="107" stroke="#1e293b" stroke-width="2"/>
+                    <polygon points="207,107 200,103 200,111" fill="#1e293b"/>
+                    <!-- Resultado Dobra 2 -->
+                    <rect x="212" y="95" width="44" height="23" fill="#dec474" stroke="#785c18" stroke-width="1.8"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="options-container" id="options-box">
+            <div id="optA" class="opt">(A) 20 cm</div>
+            <div id="optB" class="opt">(B) 40 cm</div>
+            <div id="optC" class="opt">(C) 30 cm</div>
+            <div id="optD" class="opt">(D) 25 cm</div>
+            <div id="optE" class="opt">(E) 45 cm</div>
+        </div>
+
+        <div class="presentation-area">
+            <div class="explanation" id="explanation">Iniciando...</div>
+            <div class="board" id="board">
+                <!-- Elementos dinâmicos entram aqui via JS -->
+            </div>
+        </div>
+
+        <div class="progress" id="progress-bar"></div>
+    </div>
+
+    <script>
+        // --- SISTEMA DE LOUSA (CANVAS) ---
+        const canvas = document.getElementById('draw-canvas');
+        const ctx = canvas.getContext('2d');
+        const btnPen = document.getElementById('btn-pen');
+        const btnEraser = document.getElementById('btn-eraser');
+        
+        const penMenu = document.getElementById('pen-menu');
+        const eraserMenu = document.getElementById('eraser-menu');
+        const colorBtns = document.querySelectorAll('.color-btn');
+        const penSizeInput = document.getElementById('pen-size');
+        const eraserSizeInput = document.getElementById('eraser-size');
+        
+        let currentTool = 'none';
+        let penColor = '#f43f5e';
+        let penSize = 4;
+        let eraserSize = 40;
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        
+        colorBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                colorBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                penColor = btn.dataset.color;
+                setupCanvasCtx();
+                updateCursor();
+            });
+        });
+
+        penSizeInput.addEventListener('input', (e) => { penSize = e.target.value; setupCanvasCtx(); });
+        eraserSizeInput.addEventListener('input', (e) => { eraserSize = e.target.value; setupCanvasCtx(); });
+
+        function updateCursor() {
+            if (currentTool === 'pen') {
+                const colorHex = penColor.replace('#', '%23');
+                const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${colorHex}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>`;
+                document.body.style.cursor = `url('data:image/svg+xml;utf8,${svg}') 2 22, crosshair`;
+            } else if (currentTool === 'eraser') {
+                const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%23fbbf24" stroke="%23451a03" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L2 15l9-9 9 9-5 5z"></path><path d="M11 6l9 9"></path></svg>`;
+                document.body.style.cursor = `url('data:image/svg+xml;utf8,${svg}') 2 22, crosshair`;
+            } else {
+                document.body.style.cursor = 'default';
+            }
+        }
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            setupCanvasCtx();
+        }
+        
+        function setupCanvasCtx() {
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            if (currentTool === 'eraser') {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.lineWidth = eraserSize;
+                ctx.shadowBlur = 0;
+            } else {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = penColor;
+                ctx.shadowColor = penColor;
+                ctx.lineWidth = penSize;
+                ctx.shadowBlur = 6;
+            }
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function toggleTool(tool) {
+            if (currentTool === tool) currentTool = 'none';
+            else currentTool = tool;
+            
+            btnPen.classList.remove('active-pen');
+            btnEraser.classList.remove('active-eraser');
+            penMenu.classList.add('hidden');
+            eraserMenu.classList.add('hidden');
+            
+            if (currentTool === 'pen') {
+                btnPen.classList.add('active-pen');
+                penMenu.classList.remove('hidden');
+                canvas.style.pointerEvents = 'auto';
+                ctx.globalCompositeOperation = 'source-over';
+                setupCanvasCtx();
+            } else if (currentTool === 'eraser') {
+                btnEraser.classList.add('active-eraser');
+                eraserMenu.classList.remove('hidden');
+                canvas.style.pointerEvents = 'auto';
+                ctx.globalCompositeOperation = 'destination-out';
+                setupCanvasCtx();
+            } else {
+                canvas.style.pointerEvents = 'none';
+            }
+            updateCursor();
+        }
+
+        btnPen.addEventListener('click', () => toggleTool('pen'));
+        btnEraser.addEventListener('click', () => toggleTool('eraser'));
+
+        function startDrawing(e) {
+            if (currentTool === 'none') return;
+            isDrawing = true;
+            const pos = getPos(e);
+            lastX = pos.x;
+            lastY = pos.y;
+        }
+
+        function draw(e) {
+            if (!isDrawing || currentTool === 'none') return;
+            e.preventDefault(); 
+            const pos = getPos(e);
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            lastX = pos.x;
+            lastY = pos.y;
+        }
+
+        function stopDrawing() { isDrawing = false; }
+
+        function getPos(e) {
+            if (e.touches && e.touches.length > 0) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            return { x: e.clientX, y: e.clientY };
+        }
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+        canvas.addEventListener('touchstart', startDrawing, {passive: false});
+        canvas.addEventListener('touchmove', draw, {passive: false});
+        canvas.addEventListener('touchend', stopDrawing);
+
+        // --- SISTEMA DE REDIMENSIONAMENTO DA WEBCAM ---
+        const webcam = document.getElementById('webcam');
+        const handles = document.querySelectorAll('.resize-handle');
+        let isResizing = false;
+        let activeHandle = null;
+        let startW, startH, startX, startY, startMouseX, startMouseY;
+
+        handles.forEach(handle => {
+            handle.addEventListener('mousedown', initResize);
+            handle.addEventListener('touchstart', initResize, {passive: false});
+        });
+
+        function initResize(e) {
+            let evt = e;
+            if (e.type === 'touchstart') {
+                e.preventDefault();
+                evt = e.touches[0];
+            }
+            isResizing = true;
+            activeHandle = e.target;
+            const rect = webcam.getBoundingClientRect();
+            startW = rect.width;
+            startH = rect.height;
+            startX = rect.left;
+            startY = rect.top;
+            startMouseX = evt.clientX;
+            startMouseY = evt.clientY;
+            
+            document.addEventListener('mousemove', resizeWebcam);
+            document.addEventListener('mouseup', stopResize);
+            document.addEventListener('touchmove', handleTouchResize, {passive: false});
+            document.addEventListener('touchend', stopResize);
+        }
+        
+        function handleTouchResize(e) { e.preventDefault(); resizeWebcam(e.touches[0]); }
+
+        function resizeWebcam(e) {
+            if (!isResizing) return;
+            const dx = e.clientX - startMouseX;
+            const dy = e.clientY - startMouseY;
+            const handleClass = activeHandle.className;
+            let newW = startW; let newH = startH; let newX = startX; let newY = startY;
+
+            if (handleClass.includes('se')) { newW = startW + dx; newH = startH + dy; } 
+            else if (handleClass.includes('sw')) { newW = startW - dx; newH = startH + dy; newX = startX + dx; } 
+            else if (handleClass.includes('ne')) { newW = startW + dx; newH = startH - dy; newY = startY + dy; } 
+            else if (handleClass.includes('nw')) { newW = startW - dx; newH = startH - dy; newX = startX + dx; newY = startY + dy; }
+
+            if (newW >= 100) { webcam.style.width = newW + 'px'; webcam.style.left = newX + 'px'; }
+            if (newH >= 80) { webcam.style.height = newH + 'px'; webcam.style.top = newY + 'px'; }
+        }
+
+        function stopResize() {
+            isResizing = false;
+            document.removeEventListener('mousemove', resizeWebcam);
+            document.removeEventListener('mouseup', stopResize);
+            document.removeEventListener('touchmove', handleTouchResize);
+            document.removeEventListener('touchend', stopResize);
+        }
+
+        function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+        // --- GERADOR DE FIGURAS DA FOLHA DE PAPEL AMPLIADAS (310x225) PARA CELULAR ---
+        function makePaperSVG(mode) {
+            // Folha aberta centrada em (155, 112), largura = 180 (x: 65 a 245), altura = 120 (y: 52 a 172)
+            let content = '';
+
+            if (mode === 'open-ab') {
+                content = `
+                    <rect x="65" y="52" width="180" height="120" fill="#dec474" stroke="#fde047" stroke-width="3.5" rx="3"/>
+                    <!-- Rótulos grandes dos 4 lados -->
+                    <text x="155" y="40" text-anchor="middle" fill="#38bdf8" font-size="25" font-weight="bold" font-style="italic">a</text>
+                    <text x="155" y="202" text-anchor="middle" fill="#38bdf8" font-size="25" font-weight="bold" font-style="italic">a</text>
+                    <text x="43" y="119" text-anchor="middle" fill="#c084fc" font-size="25" font-weight="bold" font-style="italic">b</text>
+                    <text x="267" y="119" text-anchor="middle" fill="#c084fc" font-size="25" font-weight="bold" font-style="italic">b</text>
+                    <text x="155" y="120" text-anchor="middle" fill="#1a0b14" font-family="system-ui, sans-serif" font-size="22" font-weight="bold">P = 50 cm</text>
+                `;
+            }
+
+            if (mode === 'fold1-preview') {
+                content = `
+                    <!-- Metade esquerda fica, metade direita dobra -->
+                    <rect x="65" y="52" width="90" height="120" fill="#dec474" stroke="#fde047" stroke-width="3.5"/>
+                    <rect class="pulse-geo" x="155" y="52" width="90" height="120" fill="rgba(222, 196, 116, 0.35)" stroke="#fb7185" stroke-width="3" stroke-dasharray="6 4"/>
+                    <!-- Linha de dobra vertical -->
+                    <line x1="155" y1="38" x2="155" y2="186" stroke="#fb7185" stroke-width="3.5" stroke-dasharray="6 4"/>
+                    <!-- Rótulos das metades -->
+                    <text x="110" y="40" text-anchor="middle" fill="#38bdf8" font-size="23" font-weight="bold" font-style="italic">a/2</text>
+                    <text x="110" y="202" text-anchor="middle" fill="#38bdf8" font-size="23" font-weight="bold" font-style="italic">a/2</text>
+                    <text x="43" y="119" text-anchor="middle" fill="#c084fc" font-size="25" font-weight="bold" font-style="italic">b</text>
+                    <text x="176" y="119" text-anchor="middle" fill="#c084fc" font-size="25" font-weight="bold" font-style="italic">b</text>
+                `;
+            }
+
+            if (mode === 'fold1-exec') {
+                content = `
+                    <!-- Folha dobrada verticalmente (90x120) centralizada em x: 110 a 200 -->
+                    <rect x="114" y="48" width="90" height="120" fill="#b89c4c" stroke="#785c18" stroke-width="2"/>
+                    <rect x="110" y="52" width="90" height="120" fill="#dec474" stroke="#fde047" stroke-width="3.5"/>
+                    <text x="155" y="40" text-anchor="middle" fill="#38bdf8" font-size="24" font-weight="bold" font-style="italic">a/2</text>
+                    <text x="155" y="202" text-anchor="middle" fill="#38bdf8" font-size="24" font-weight="bold" font-style="italic">a/2</text>
+                    <text x="88" y="119" text-anchor="middle" fill="#c084fc" font-size="25" font-weight="bold" font-style="italic">b</text>
+                    <text x="222" y="119" text-anchor="middle" fill="#c084fc" font-size="25" font-weight="bold" font-style="italic">b</text>
+                    <text x="155" y="120" text-anchor="middle" fill="#1a0b14" font-family="system-ui, sans-serif" font-size="21" font-weight="bold">P₁ = 35</text>
+                `;
+            }
+
+            if (mode === 'open-a15') {
+                content = `
+                    <rect x="65" y="52" width="180" height="120" fill="#dec474" stroke="#fde047" stroke-width="3.5" rx="3"/>
+                    <text x="155" y="40" text-anchor="middle" fill="#34d399" font-family="system-ui, sans-serif" font-size="23" font-weight="bold">a = 15 cm</text>
+                    <text x="155" y="202" text-anchor="middle" fill="#34d399" font-family="system-ui, sans-serif" font-size="23" font-weight="bold">15 cm</text>
+                    <text x="43" y="119" text-anchor="middle" fill="#c084fc" font-size="25" font-weight="bold" font-style="italic">b</text>
+                    <text x="267" y="119" text-anchor="middle" fill="#c084fc" font-size="25" font-weight="bold" font-style="italic">b</text>
+                    <text x="155" y="120" text-anchor="middle" fill="#1a0b14" font-family="system-ui, sans-serif" font-size="22" font-weight="bold">P = 50 cm</text>
+                `;
+            }
+
+            if (mode === 'open-15-10') {
+                content = `
+                    <rect x="65" y="52" width="180" height="120" fill="#dec474" stroke="#fde047" stroke-width="3.5" rx="3"/>
+                    <text x="155" y="40" text-anchor="middle" fill="#38bdf8" font-family="system-ui, sans-serif" font-size="23" font-weight="bold">15 cm</text>
+                    <text x="155" y="202" text-anchor="middle" fill="#38bdf8" font-family="system-ui, sans-serif" font-size="23" font-weight="bold">15 cm</text>
+                    <text x="34" y="119" text-anchor="middle" fill="#34d399" font-family="system-ui, sans-serif" font-size="22" font-weight="bold">10</text>
+                    <text x="276" y="119" text-anchor="middle" fill="#34d399" font-family="system-ui, sans-serif" font-size="22" font-weight="bold">10</text>
+                    <text x="155" y="120" text-anchor="middle" fill="#1a0b14" font-family="system-ui, sans-serif" font-size="21" font-weight="bold">15 × 10 cm</text>
+                `;
+            }
+
+            if (mode === 'fold2-preview') {
+                content = `
+                    <!-- Dobra horizontal: metade de baixo fica (y: 112 a 172), metade de cima dobra -->
+                    <rect class="pulse-geo" x="65" y="52" width="180" height="60" fill="rgba(222, 196, 116, 0.35)" stroke="#fb7185" stroke-width="3" stroke-dasharray="6 4"/>
+                    <rect x="65" y="112" width="180" height="60" fill="#dec474" stroke="#fde047" stroke-width="3.5"/>
+                    <line x1="50" y1="112" x2="260" y2="112" stroke="#fb7185" stroke-width="3.5" stroke-dasharray="6 4"/>
+                    <text x="155" y="102" text-anchor="middle" fill="#38bdf8" font-family="system-ui, sans-serif" font-size="22" font-weight="bold">15 cm</text>
+                    <text x="155" y="202" text-anchor="middle" fill="#38bdf8" font-family="system-ui, sans-serif" font-size="22" font-weight="bold">15 cm</text>
+                    <text x="36" y="149" text-anchor="middle" fill="#fde047" font-family="system-ui, sans-serif" font-size="23" font-weight="bold">5</text>
+                    <text x="274" y="149" text-anchor="middle" fill="#fde047" font-family="system-ui, sans-serif" font-size="23" font-weight="bold">5</text>
+                `;
+            }
+
+            if (mode === 'fold2-exec') {
+                content = `
+                    <!-- Folha dobrada horizontalmente (180x60) centralizada em y: 82 a 142 -->
+                    <rect x="69" y="78" width="180" height="60" fill="#b89c4c" stroke="#785c18" stroke-width="2"/>
+                    <rect x="65" y="82" width="180" height="60" fill="#dec474" stroke="#fde047" stroke-width="3.5"/>
+                    <text x="155" y="68" text-anchor="middle" fill="#38bdf8" font-family="system-ui, sans-serif" font-size="23" font-weight="bold">15 cm</text>
+                    <text x="155" y="172" text-anchor="middle" fill="#38bdf8" font-family="system-ui, sans-serif" font-size="23" font-weight="bold">15 cm</text>
+                    <text x="36" y="120" text-anchor="middle" fill="#c084fc" font-family="system-ui, sans-serif" font-size="23" font-weight="bold">5 cm</text>
+                    <text x="276" y="120" text-anchor="middle" fill="#c084fc" font-family="system-ui, sans-serif" font-size="23" font-weight="bold">5 cm</text>
+                `;
+            }
+
+            return `<div id="geo-box" class="anim geo-card"><svg width="310" height="220" viewBox="0 0 310 220">${content}</svg></div>`;
+        }
+
+        // --- FLUXO DE DADOS: PREVIEW -> EXECUTE (QUESTÃO 3 - OBMEP NÍVEL 2) ---
+        const stepsData = [
+            { // 0: Tela Inicial
+                text: "Pronto para começar? Use as setas do teclado (➔) para avançar os passos da resolução.",
+                html: `<div class="row" style="height: 100%; display: flex; align-items: center;">
+                        <span class="anim" style="font-size: 5.5rem; color: #ec4899; filter: drop-shadow(0 0 15px rgba(236,72,153,0.5));">▶</span>
+                      </div>`
+            },
+            { // 1: Folha original e seu perímetro
+                text: "Chamamos a largura da folha aberta de 'a' e a altura de 'b'. Como o perímetro é a soma dos 4 lados e vale 50 cm, temos:",
+                html: `<div class="board-split">
+                        ${makePaperSVG('open-ab')}
+                        <div class="row">
+                            <span id="a1" class="anim math c-a">a</span>
+                            <span id="pl1" class="anim c-op" style="margin: 0 8px;">+</span>
+                            <span id="a2" class="anim math c-a">a</span>
+                            <span id="pl2" class="anim c-op" style="margin: 0 8px;">+</span>
+                            <span id="b1" class="anim math c-b">b</span>
+                            <span id="pl3" class="anim c-op" style="margin: 0 8px;">+</span>
+                            <span id="b2" class="anim math c-b">b</span>
+                            <span id="eq1" class="anim c-op" style="margin: 0 14px;"> = </span>
+                            <span id="v50" class="anim c-p">50</span>
+                        </div>
+                      </div>`
+            },
+            { // 2: 1ª Dobra ao meio (Prévia)
+                text: "Na 1ª dobra ao meio, a altura 'b' se mantém, mas os lados de medida 'a' caem pela metade (a/2), resultando no perímetro de 35 cm:",
+                html: `<div class="board-split">
+                        ${makePaperSVG('fold1-preview')}
+                        <div class="row">
+                            <div class="frac">
+                                <div class="num"><span id="a1" class="anim math c-a blink-me">a</span></div>
+                                <div class="den"><span id="d2_1" class="anim c-op blink-me">2</span></div>
+                            </div>
+                            <span id="pl1" class="anim c-op" style="margin: 0 6px;">+</span>
+                            <div class="frac">
+                                <div class="num"><span id="a2" class="anim math c-a blink-me">a</span></div>
+                                <div class="den"><span id="d2_2" class="anim c-op blink-me">2</span></div>
+                            </div>
+                            <span id="pl2" class="anim c-op" style="margin: 0 8px;">+</span>
+                            <span id="b1" class="anim math c-b">b</span>
+                            <span id="pl3" class="anim c-op" style="margin: 0 8px;">+</span>
+                            <span id="b2" class="anim math c-b">b</span>
+                            <span id="eq1" class="anim c-op" style="margin: 0 14px;"> = </span>
+                            <span id="v35" class="anim c-p blink-me">35</span>
+                        </div>
+                      </div>`
+            },
+            { // 3: 1ª Dobra ao meio (Execução)
+                text: "Na 1ª dobra ao meio, a altura 'b' se mantém, mas os lados de medida 'a' caem pela metade (a/2), resultando no perímetro de 35 cm:",
+                html: `<div class="board-split">
+                        ${makePaperSVG('fold1-exec')}
+                        <div class="row">
+                            <div class="frac">
+                                <div class="num"><span id="a1" class="anim math c-a">a</span></div>
+                                <div class="den"><span id="d2_1" class="anim c-op">2</span></div>
+                            </div>
+                            <span id="pl1" class="anim c-op" style="margin: 0 6px;">+</span>
+                            <div class="frac">
+                                <div class="num"><span id="a2" class="anim math c-a">a</span></div>
+                                <div class="den"><span id="d2_2" class="anim c-op">2</span></div>
+                            </div>
+                            <span id="pl2" class="anim c-op" style="margin: 0 8px;">+</span>
+                            <span id="b1" class="anim math c-b">b</span>
+                            <span id="pl3" class="anim c-op" style="margin: 0 8px;">+</span>
+                            <span id="b2" class="anim math c-b">b</span>
+                            <span id="eq1" class="anim c-op" style="margin: 0 14px;"> = </span>
+                            <span id="v35" class="anim c-p">35</span>
+                        </div>
+                      </div>`
+            },
+            { // 4: Somar a/2 + a/2 = a (Prévia com chave inferior)
+                text: "Somando as duas metades (a/2 + a/2), temos um lado inteiro 'a'. Veja que na dobra o perímetro perdeu exatamente um lado 'a'!",
+                html: `<div class="board-split">
+                        ${makePaperSVG('fold1-exec')}
+                        <div class="row">
+                            <span style="position:relative; display:inline-flex; flex-direction:column; align-items:center;">
+                                <div style="display:flex; align-items:center;">
+                                    <div class="frac">
+                                        <div class="num"><span id="a1" class="anim math c-a hl-yellow">a</span></div>
+                                        <div class="den"><span id="d2_1" class="anim c-op hl-yellow">2</span></div>
+                                    </div>
+                                    <span id="pl1" class="anim c-op hl-yellow" style="margin: 0 6px;">+</span>
+                                    <div class="frac">
+                                        <div class="num"><span id="a2" class="anim math c-a hl-yellow">a</span></div>
+                                        <div class="den"><span id="d2_2" class="anim c-op hl-yellow">2</span></div>
+                                    </div>
+                                </div>
+                                <div class="anim" style="position:absolute; top:100%; left:0; width:100%; display:flex; flex-direction:column; align-items:center; pointer-events:none;">
+                                    <svg width="90%" height="15" viewBox="0 0 100 15" preserveAspectRatio="none" style="margin-top:2px; overflow:visible;">
+                                        <path d="M0,0 C0,15 45,15 50,15 C55,15 100,15 100,0" fill="none" stroke="#fde047" stroke-width="2.5"/>
+                                    </svg>
+                                    <span class="math" style="color:#fde047; font-size:1.7rem; font-weight:bold; margin-top:2px;">a</span>
+                                </div>
+                            </span>
+                            <span id="pl2" class="anim c-op" style="margin: 0 8px;">+</span>
+                            <span id="b1" class="anim math c-b">b</span>
+                            <span id="pl3" class="anim c-op" style="margin: 0 8px;">+</span>
+                            <span id="b2" class="anim math c-b">b</span>
+                            <span id="eq1" class="anim c-op" style="margin: 0 14px;"> = </span>
+                            <span id="v35" class="anim c-p">35</span>
+                        </div>
+                      </div>`
+            },
+            { // 5: Somar a/2 + a/2 = a (Execução -> a + b + b = 35)
+                text: "Somando as duas metades (a/2 + a/2), temos um lado inteiro 'a'. Veja que na dobra o perímetro perdeu exatamente um lado 'a'!",
+                html: `<div class="board-split">
+                        ${makePaperSVG('fold1-exec')}
+                        <div class="row">
+                            <span id="a2" class="anim math c-a">a</span>
+                            <span id="pl2" class="anim c-op" style="margin: 0 10px;">+</span>
+                            <span id="b1" class="anim math c-b">b</span>
+                            <span id="pl3" class="anim c-op" style="margin: 0 10px;">+</span>
+                            <span id="b2" class="anim math c-b">b</span>
+                            <span id="eq1" class="anim c-op" style="margin: 0 14px;"> = </span>
+                            <span id="v35" class="anim c-p">35</span>
+                        </div>
+                      </div>`
+            },
+            { // 6: Substituir a + b + b = 35 na equação do perímetro original (Prévia)
+                text: "Voltemos ao perímetro da folha aberta (a + a + b + b = 50). Como 'a + b + b' vale 35, substituímos esse bloco por 35:",
+                html: `<div class="row">
+                        <span id="a1" class="anim math c-a">a</span>
+                        <span id="pl1" class="anim c-op" style="margin: 0 10px;">+</span>
+                        <span style="position:relative; display:inline-flex; flex-direction:column; align-items:center;">
+                            <div style="display:flex; align-items:center;">
+                                <span id="a2" class="anim math c-a hl-yellow">a</span>
+                                <span id="pl2" class="anim c-op hl-yellow" style="margin: 0 10px;">+</span>
+                                <span id="b1" class="anim math c-b hl-yellow">b</span>
+                                <span id="pl3" class="anim c-op hl-yellow" style="margin: 0 10px;">+</span>
+                                <span id="b2" class="anim math c-b hl-yellow">b</span>
+                            </div>
+                            <div class="anim" style="position:absolute; top:100%; left:0; width:100%; display:flex; flex-direction:column; align-items:center; pointer-events:none;">
+                                <svg width="95%" height="15" viewBox="0 0 100 15" preserveAspectRatio="none" style="margin-top:2px; overflow:visible;">
+                                    <path d="M0,0 C0,15 45,15 50,15 C55,15 100,15 100,0" fill="none" stroke="#fde047" stroke-width="2.5"/>
+                                </svg>
+                                <span style="color:#fde047; font-size:1.75rem; font-weight:bold; margin-top:4px;">35</span>
+                            </div>
+                        </span>
+                        <span id="eq1" class="anim c-op" style="margin: 0 14px;"> = </span>
+                        <span id="v50" class="anim c-p">50</span>
+                      </div>`
+            },
+            { // 7: Substituir a + b + b = 35 na equação do perímetro original (Execução -> a + 35 = 50)
+                text: "Voltemos ao perímetro da folha aberta (a + a + b + b = 50). Como 'a + b + b' vale 35, substituímos esse bloco por 35:",
+                html: `<div class="row">
+                        <span id="a1" class="anim math c-a">a</span>
+                        <span id="pl1" class="anim c-op" style="margin: 0 12px;">+</span>
+                        <span id="v35" class="anim c-p">35</span>
+                        <span id="eq1" class="anim c-op" style="margin: 0 14px;"> = </span>
+                        <span id="v50" class="anim c-p">50</span>
+                      </div>`
+            },
+            { // 8: Passar o 35 subtraindo (Prévia)
+                text: "Passamos o 35 para o lado direito subtraindo (ou seja, o lado 'a' é a redução do perímetro: 50 − 35):",
+                html: `<div class="row">
+                        <span id="a1" class="anim math c-a">a</span>
+                        <span id="pl1" class="anim c-op hl-yellow" style="margin: 0 12px;">+</span>
+                        <span id="v35" class="anim c-p hl-yellow">35</span>
+                        <span id="eq1" class="anim c-op" style="margin: 0 14px;"> = </span>
+                        <span id="v50" class="anim c-p">50</span>
+                      </div>`
+            },
+            { // 9: Passar o 35 subtraindo (Execução -> a = 50 - 35)
+                text: "Passamos o 35 para o lado direito subtraindo (ou seja, o lado 'a' é a redução do perímetro: 50 − 35):",
+                html: `<div class="row">
+                        <span id="a1" class="anim math c-a">a</span>
+                        <span id="eq1" class="anim c-op" style="margin: 0 14px;"> = </span>
+                        <span id="v50" class="anim c-p">50</span>
+                        <span id="pl1" class="anim c-hl" style="margin: 0 12px;">−</span>
+                        <span id="v35" class="anim c-p">35</span>
+                      </div>`
+            },
+            { // 10: Calcular 50 - 35 = 15 (Prévia)
+                text: "Subtraindo 50 − 35, descobrimos que a dimensão 'a' da folha mede 15 cm:",
+                html: `<div class="row">
+                        <span id="a1" class="anim math c-a">a</span>
+                        <span id="eq1" class="anim c-op" style="margin: 0 14px;"> = </span>
+                        <span id="v50" class="anim c-p hl-yellow">50</span>
+                        <span id="pl1" class="anim c-op hl-yellow" style="margin: 0 12px;">−</span>
+                        <span id="v35" class="anim c-p hl-yellow">35</span>
+                      </div>`
+            },
+            { // 11: Calcular 50 - 35 = 15 (Execução -> a = 15 cm)
+                text: "Subtraindo 50 − 35, descobrimos que a dimensão 'a' da folha mede 15 cm:",
+                html: `<div class="board-split">
+                        ${makePaperSVG('open-a15')}
+                        <div class="row">
+                            <span id="a1" class="anim math c-a">a</span>
+                            <span id="eq1" class="anim c-op" style="margin: 0 14px;"> = </span>
+                            <span id="v15_a" class="anim c-res">15 cm</span>
+                        </div>
+                      </div>`
+            },
+            { // 12: Substituir a = 15 no perímetro original para achar b (Prévia)
+                text: "Agora substituímos os dois lados 'a' por 15 cm no perímetro original da folha aberta (15 + 15 + 2b = 50):",
+                html: `<div class="board-split">
+                        ${makePaperSVG('open-a15')}
+                        <div class="row">
+                            <span id="v15_1" class="anim c-a blink-me">15</span>
+                            <span id="pl1" class="anim c-op blink-me" style="margin: 0 8px;">+</span>
+                            <span id="v15_2" class="anim c-a blink-me">15</span>
+                            <span id="pl2" class="anim c-op" style="margin: 0 8px;">+</span>
+                            <span id="n2_b" class="anim c-b">2</span>
+                            <span id="b1" class="anim math c-b">b</span>
+                            <span id="eq1" class="anim c-op" style="margin: 0 12px;"> = </span>
+                            <span id="v50" class="anim c-p">50</span>
+                        </div>
+                      </div>`
+            },
+            { // 13: Substituir a = 15 no perímetro original para achar b (Execução)
+                text: "Agora substituímos os dois lados 'a' por 15 cm no perímetro original da folha aberta (15 + 15 + 2b = 50):",
+                html: `<div class="board-split">
+                        ${makePaperSVG('open-a15')}
+                        <div class="row">
+                            <span id="v15_1" class="anim c-a">15</span>
+                            <span id="pl1" class="anim c-op" style="margin: 0 8px;">+</span>
+                            <span id="v15_2" class="anim c-a">15</span>
+                            <span id="pl2" class="anim c-op" style="margin: 0 8px;">+</span>
+                            <span id="n2_b" class="anim c-b">2</span>
+                            <span id="b1" class="anim math c-b">b</span>
+                            <span id="eq1" class="anim c-op" style="margin: 0 12px;"> = </span>
+                            <span id="v50" class="anim c-p">50</span>
+                        </div>
+                      </div>`
+            },
+            { // 14: Somar 15 + 15 = 30 e passar subtraindo (Prévia)
+                text: "Como 15 + 15 = 30, passamos esse 30 subtraindo para o lado direito (50 − 30):",
+                html: `<div class="row">
+                        <span style="position:relative; display:inline-flex; flex-direction:column; align-items:center;">
+                            <div style="display:flex; align-items:center;">
+                                <span id="v15_1" class="anim c-a hl-yellow">15</span>
+                                <span id="pl1" class="anim c-op hl-yellow" style="margin: 0 8px;">+</span>
+                                <span id="v15_2" class="anim c-a hl-yellow">15</span>
+                            </div>
+                            <div class="anim" style="position:absolute; top:100%; left:0; width:100%; display:flex; flex-direction:column; align-items:center; pointer-events:none;">
+                                <svg width="95%" height="15" viewBox="0 0 100 15" preserveAspectRatio="none" style="margin-top:2px; overflow:visible;">
+                                    <path d="M0,0 C0,15 45,15 50,15 C55,15 100,15 100,0" fill="none" stroke="#fde047" stroke-width="2.5"/>
+                                </svg>
+                                <span style="color:#fde047; font-size:1.7rem; font-weight:bold; margin-top:2px;">30</span>
+                            </div>
+                        </span>
+                        <span id="pl2" class="anim c-op" style="margin: 0 10px;">+</span>
+                        <span id="n2_b" class="anim c-b">2</span>
+                        <span id="b1" class="anim math c-b">b</span>
+                        <span id="eq1" class="anim c-op" style="margin: 0 14px;"> = </span>
+                        <span id="v50" class="anim c-p">50</span>
+                      </div>`
+            },
+            { // 15: Somar 15 + 15 = 30 e passar subtraindo (Execução -> 2b = 50 - 30)
+                text: "Como 15 + 15 = 30, passamos esse 30 subtraindo para o lado direito (50 − 30):",
+                html: `<div class="row">
+                        <span id="n2_b" class="anim c-b">2</span>
+                        <span id="b1" class="anim math c-b">b</span>
+                        <span id="eq1" class="anim c-op" style="margin: 0 14px;"> = </span>
+                        <span id="v50" class="anim c-p">50</span>
+                        <span id="min_30" class="anim c-hl" style="margin: 0 12px;">−</span>
+                        <span id="v30" class="anim c-a">30</span>
+                      </div>`
+            },
+            { // 16: Calcular 2b = 20 e dividir por 2 (Prévia)
+                text: "Subtraímos 50 − 30 = 20 e dividimos por 2, descobrindo que a outra dimensão da folha mede b = 10 cm:",
+                html: `<div class="row">
+                        <span id="n2_b" class="anim c-b hl-yellow">2</span>
+                        <span id="b1" class="anim math c-b">b</span>
+                        <span id="eq1" class="anim c-op" style="margin: 0 14px;"> = </span>
+                        <span style="position:relative; display:inline-flex; flex-direction:column; align-items:center;">
+                            <div style="display:flex; align-items:center;">
+                                <span id="v50" class="anim c-p hl-yellow">50</span>
+                                <span id="min_30" class="anim c-op hl-yellow" style="margin: 0 12px;">−</span>
+                                <span id="v30" class="anim c-a hl-yellow">30</span>
+                            </div>
+                            <div class="anim" style="position:absolute; top:100%; left:0; width:100%; display:flex; flex-direction:column; align-items:center; pointer-events:none;">
+                                <svg width="95%" height="15" viewBox="0 0 100 15" preserveAspectRatio="none" style="margin-top:2px; overflow:visible;">
+                                    <path d="M0,0 C0,15 45,15 50,15 C55,15 100,15 100,0" fill="none" stroke="#fde047" stroke-width="2.5"/>
+                                </svg>
+                                <span style="color:#fde047; font-size:1.7rem; font-weight:bold; margin-top:2px;">20</span>
+                            </div>
+                        </span>
+                      </div>`
+            },
+            { // 17: Calcular b = 10 cm (Execução)
+                text: "Subtraímos 50 − 30 = 20 e dividimos por 2, descobrindo que a outra dimensão da folha mede b = 10 cm:",
+                html: `<div class="board-split">
+                        ${makePaperSVG('open-15-10')}
+                        <div class="row">
+                            <span id="b1" class="anim math c-b">b</span>
+                            <span id="eq1" class="anim c-op" style="margin: 0 14px;"> = </span>
+                            <span id="v10_b" class="anim c-res">10 cm</span>
+                        </div>
+                      </div>`
+            },
+            { // 18: 2ª Dobra ao meio (Horizontal) (Prévia)
+                text: "Agora dobramos da outra maneira! O lado de 15 cm se mantém, e o lado de 10 cm cai pela metade (5 cm):",
+                html: `<div class="board-split">
+                        ${makePaperSVG('fold2-preview')}
+                        <div class="row">
+                            <span id="p2_var" class="anim math c-p blink-me">P<sub style="font-size:1.4rem;">2</sub></span>
+                            <span id="eq2" class="anim c-op blink-me" style="margin: 0 12px;"> = </span>
+                            <span id="s15_1" class="anim c-a blink-me">15</span>
+                            <span id="sp1" class="anim c-op blink-me" style="margin: 0 8px;">+</span>
+                            <span id="s15_2" class="anim c-a blink-me">15</span>
+                            <span id="sp2" class="anim c-op blink-me" style="margin: 0 8px;">+</span>
+                            <span id="s5_1" class="anim c-b blink-me">5</span>
+                            <span id="sp3" class="anim c-op blink-me" style="margin: 0 8px;">+</span>
+                            <span id="s5_2" class="anim c-b blink-me">5</span>
+                        </div>
+                      </div>`
+            },
+            { // 19: 2ª Dobra ao meio (Horizontal) (Execução)
+                text: "Agora dobramos da outra maneira! O lado de 15 cm se mantém, e o lado de 10 cm cai pela metade (5 cm):",
+                html: `<div class="board-split">
+                        ${makePaperSVG('fold2-exec')}
+                        <div class="row">
+                            <span id="p2_var" class="anim math c-p">P<sub style="font-size:1.4rem;">2</sub></span>
+                            <span id="eq2" class="anim c-op" style="margin: 0 12px;"> = </span>
+                            <span id="s15_1" class="anim c-a">15</span>
+                            <span id="sp1" class="anim c-op" style="margin: 0 8px;">+</span>
+                            <span id="s15_2" class="anim c-a">15</span>
+                            <span id="sp2" class="anim c-op" style="margin: 0 8px;">+</span>
+                            <span id="s5_1" class="anim c-b">5</span>
+                            <span id="sp3" class="anim c-op" style="margin: 0 8px;">+</span>
+                            <span id="s5_2" class="anim c-b">5</span>
+                        </div>
+                      </div>`
+            },
+            { // 20: Somar 15 + 15 + 5 + 5 = 40 (Prévia)
+                text: "Somando os quatro lados da folha dobrada (30 + 10), encontramos o novo perímetro!",
+                html: `<div class="row">
+                        <span id="p2_var" class="anim math c-p">P<sub style="font-size:1.4rem;">2</sub></span>
+                        <span id="eq2" class="anim c-op" style="margin: 0 14px;"> = </span>
+                        <span style="position:relative; display:inline-flex; flex-direction:column; align-items:center;">
+                            <div style="display:flex; align-items:center;">
+                                <span id="s15_1" class="anim c-a hl-yellow">15</span>
+                                <span id="sp1" class="anim c-op hl-yellow" style="margin: 0 8px;">+</span>
+                                <span id="s15_2" class="anim c-a hl-yellow">15</span>
+                            </div>
+                            <div class="anim" style="position:absolute; top:100%; left:0; width:100%; display:flex; flex-direction:column; align-items:center; pointer-events:none;">
+                                <svg width="95%" height="15" viewBox="0 0 100 15" preserveAspectRatio="none" style="margin-top:2px; overflow:visible;">
+                                    <path d="M0,0 C0,15 45,15 50,15 C55,15 100,15 100,0" fill="none" stroke="#fde047" stroke-width="2.5"/>
+                                </svg>
+                                <span style="color:#fde047; font-size:1.75rem; font-weight:bold; margin-top:2px;">30</span>
+                            </div>
+                        </span>
+                        <span id="sp2" class="anim c-op" style="margin: 0 12px;">+</span>
+                        <span style="position:relative; display:inline-flex; flex-direction:column; align-items:center;">
+                            <div style="display:flex; align-items:center;">
+                                <span id="s5_1" class="anim c-b hl-yellow">5</span>
+                                <span id="sp3" class="anim c-op hl-yellow" style="margin: 0 8px;">+</span>
+                                <span id="s5_2" class="anim c-b hl-yellow">5</span>
+                            </div>
+                            <div class="anim" style="position:absolute; top:100%; left:0; width:100%; display:flex; flex-direction:column; align-items:center; pointer-events:none;">
+                                <svg width="95%" height="15" viewBox="0 0 100 15" preserveAspectRatio="none" style="margin-top:2px; overflow:visible;">
+                                    <path d="M0,0 C0,15 45,15 50,15 C55,15 100,15 100,0" fill="none" stroke="#fde047" stroke-width="2.5"/>
+                                </svg>
+                                <span style="color:#fde047; font-size:1.75rem; font-weight:bold; margin-top:2px;">10</span>
+                            </div>
+                        </span>
+                      </div>`
+            },
+            { // 21: Conclusão Final -> 40 cm (Alternativa B)
+                text: "Somando os quatro lados da folha dobrada (30 + 10), encontramos o novo perímetro de 40 cm!",
+                html: `<div class="row">
+                        <span id="p2_var" class="anim math c-p" style="font-size: 2.8rem;">P<sub style="font-size:1.7rem;">2</sub></span>
+                        <span id="eq2" class="anim c-op" style="margin: 0 16px; font-size: 2.8rem;"> = </span>
+                        <span id="res40" class="anim c-res" style="font-size: 3.6rem;">40 cm</span>
+                      </div>
+                      <div class="row" style="margin-top:26px; background:#166534; padding: 14px 44px; border-radius: 12px; border: 2px solid #22c55e; box-shadow: 0 0 25px rgba(34,197,94,0.4);">
+                        <span id="ans" class="anim" style="color:#fff; font-family: system-ui, sans-serif; font-size:1.7rem; font-weight: bold;">Alternativa (B)</span>
+                      </div>`
+            }
+        ];
+
+        let currentStep = 0;
+        let isAnimating = false;
+        let audioCtx;
+
+        function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        
+        function playTone(freq, type, duration, vol) {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function playPopSound() { initAudio(); playTone(600, 'sine', 0.1, 0.1); setTimeout(() => playTone(900, 'sine', 0.15, 0.05), 50); }
+        function playBackSound() { initAudio(); playTone(400, 'sine', 0.1, 0.05); }
+        function playSuccessSound() {
+            initAudio();
+            playTone(440, 'triangle', 0.1, 0.1);
+            setTimeout(() => playTone(554, 'triangle', 0.1, 0.1), 100);
+            setTimeout(() => playTone(659, 'triangle', 0.1, 0.1), 200);
+            setTimeout(() => playTone(880, 'triangle', 0.5, 0.15), 300);
+        }
+
+        function createConfetti() {
+            const colors = ['#ec4899', '#f472b6', '#fde047', '#22c55e', '#c084fc'];
+            for (let i = 0; i < 60; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animation = `fall ${Math.random() * 2 + 1.5}s linear forwards`;
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 3500);
+            }
+        }
+
+        const progressContainer = document.getElementById('progress-bar');
+        stepsData.forEach((_, i) => {
+            const dot = document.createElement('div');
+            dot.className = `dot ${i === 0 ? 'active' : ''}`;
+            progressContainer.appendChild(dot);
+        });
+
+        // Motor de Animação FLIP - Acionado a cada clique sem pausas automáticas
+        function renderStep(idx, goingForward) {
+            if (isAnimating) return;
+            isAnimating = true;
+            
+            const board = document.getElementById('board');
+            const exp = document.getElementById('explanation');
+            const data = stepsData[idx];
+
+            // Atualiza o texto imediatamente
+            exp.textContent = data.text;
+            exp.style.opacity = '1';
+
+            // Registra posições antigas
+            const oldEls = document.querySelectorAll('.anim');
+            const rects = new Map();
+            oldEls.forEach(el => {
+                if (el.id) rects.set(el.id, el.getBoundingClientRect());
+            });
+
+            // Troca o HTML
+            board.innerHTML = data.html;
+
+            const newEls = document.querySelectorAll('.anim');
+            
+            newEls.forEach(el => {
+                const oldRect = el.id ? rects.get(el.id) : null;
+                if (oldRect) {
+                    const newRect = el.getBoundingClientRect();
+                    const dx = oldRect.left - newRect.left;
+                    const dy = oldRect.top - newRect.top;
+                    
+                    if (dx !== 0 || dy !== 0) {
+                        el.style.transform = `translate(${dx}px, ${dy}px)`;
+                        el.style.transition = 'none';
+                        el.getBoundingClientRect(); // Força reflow
+                        el.style.transition = 'transform 0.9s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                        el.style.transform = 'translate(0, 0)';
+                    }
+                } else {
+                    el.style.opacity = '0';
+                    el.style.transform = 'scale(0.5)';
+                    el.style.transition = 'none';
+                    el.getBoundingClientRect(); // Força reflow
+                    el.style.transition = 'opacity 0.8s ease, transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                    el.style.opacity = '1';
+                    el.style.transform = 'scale(1)';
+                }
+            });
+
+            oldEls.forEach(el => {
+                if (el.id && !document.getElementById(el.id)) {
+                    const clone = el.cloneNode(true);
+                    const rect = rects.get(el.id);
+                    clone.style.position = 'fixed';
+                    clone.style.left = rect.left + 'px';
+                    clone.style.top = rect.top + 'px';
+                    clone.style.margin = '0';
+                    clone.style.pointerEvents = 'none';
+                    clone.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    document.body.appendChild(clone);
+                    clone.getBoundingClientRect(); 
+                    clone.style.opacity = '0';
+                    clone.style.transform = 'scale(0.5)';
+                    setTimeout(() => clone.remove(), 500);
+                }
+            });
+
+            document.querySelectorAll('.dot').forEach((dot, i) => {
+                dot.className = `dot ${i === idx ? 'active' : ''}`;
+            });
+
+            // Resposta correta: (B) 40 cm
+            if (idx === stepsData.length - 1) {
+                document.getElementById('optB').classList.add('correct');
+            } else {
+                document.getElementById('optB').classList.remove('correct');
+            }
+
+            if (goingForward) {
+                if (idx === stepsData.length - 1) {
+                    setTimeout(() => { playSuccessSound(); createConfetti(); }, 400);
+                } else {
+                    playPopSound();
+                }
+            } else {
+                playBackSound();
+            }
+
+            setTimeout(() => { isAnimating = false; }, 900);
+        }
+
+        // Navegação
+        function nextStep() {
+            if (currentStep < stepsData.length - 1) {
+                clearCanvas();
+                currentStep++;
+                renderStep(currentStep, true);
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 0) {
+                clearCanvas();
+                currentStep--;
+                renderStep(currentStep, false);
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (['ArrowRight', 'ArrowDown', ' '].includes(e.key)) {
+                e.preventDefault();
+                nextStep();
+            } else if (['ArrowLeft', 'ArrowUp'].includes(e.key)) {
+                e.preventDefault();
+                prevStep();
+            }
+        });
+
+        let touchStartX = 0;
+        document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
+        document.addEventListener('touchend', e => {
+            let touchEndX = e.changedTouches[0].screenX;
+            if (touchEndX < touchStartX - 50) nextStep();
+            if (touchEndX > touchStartX + 50) prevStep();
+        }, {passive: true});
+
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById('board').innerHTML = stepsData[0].html;
+            document.getElementById('explanation').textContent = stepsData[0].text;
+        });
+
+    </script>
+</body>
+</html>

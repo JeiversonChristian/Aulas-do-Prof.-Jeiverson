@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><script src="https://myhub.ia.br/canvas-vendor/tailwind.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resolução OBMEP Nível 2 Animada - Questão 4</title>
+    <style>
+        /* Base e Reset - Paleta Rosa/Vinho Nível 2 + Tipografia Ampliada para Celular (YouTube) */
+        body { 
+            margin: 0; 
+            background-color: #1a0b14; 
+            color: #fdf2f8; 
+            font-family: system-ui, -apple-system, sans-serif; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            overflow: hidden; 
+        }
+
+        /* Ferramentas do Professor */
+        :root { --pen-color: #f43f5e; --pen-bg: #4c0519; }
+        .top-bar { position: fixed; top: 1rem; left: 1rem; display: flex; gap: 0.6rem; z-index: 200; }
+        .tool-group { position: relative; }
+        .top-btn { background: #2e1222; color: #f9a8d4; border: 1px solid #592242; padding: 0.5rem 0.9rem; border-radius: 0.5rem; cursor: pointer; transition: all 0.2s; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 0.4rem; text-decoration: none; font-family: inherit; }
+        .top-btn:hover { background: #451a33; color: #fff; }
+        .top-btn.active-pen { background: var(--pen-bg); border-color: var(--pen-color); color: var(--pen-color); box-shadow: 0 0 12px var(--pen-color); }
+        .top-btn.active-eraser { background: #451a03; border-color: #fbbf24; color: #fbbf24; box-shadow: 0 0 12px rgba(251, 191, 36, 0.4); }
+        
+        .tool-menu { position: absolute; top: calc(100% + 0.5rem); left: 0; background: #2e1222; border: 1px solid #592242; border-radius: 0.5rem; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.75rem; box-shadow: 0 4px 6px rgba(0,0,0,0.3); opacity: 1; transition: opacity 0.2s; pointer-events: auto; min-width: 140px; }
+        .tool-menu.hidden { opacity: 0; pointer-events: none; }
+        .menu-row { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #fbcfe8; }
+        .color-btn { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.2s; }
+        .color-btn:hover { transform: scale(1.1); }
+        .color-btn.active { border-color: #fff; box-shadow: 0 0 8px currentColor; }
+        input[type="range"] { flex: 1; width: 100%; cursor: pointer; }
+
+        .webcam-box { position: fixed; top: 16px; left: calc(100vw - 176px); width: 160px; height: 120px; min-width: 100px; min-height: 80px; background: rgba(26, 11, 20, 0.45); border: 2px dashed #833260; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; color: #d68cb8; font-size: 0.9rem; z-index: 100; backdrop-filter: blur(4px); user-select: none; touch-action: none; }
+        
+        .resize-handle { position: absolute; width: 14px; height: 14px; background: #833260; border: 2px solid #fbcfe8; border-radius: 50%; z-index: 10; transition: transform 0.2s; }
+        .resize-handle:hover { transform: scale(1.3); background: #ec4899; }
+        .resize-handle.nw { top: -7px; left: -7px; cursor: nwse-resize; }
+        .resize-handle.ne { top: -7px; right: -7px; cursor: nesw-resize; }
+        .resize-handle.sw { bottom: -7px; left: -7px; cursor: nesw-resize; }
+        .resize-handle.se { bottom: -7px; right: -7px; cursor: nwse-resize; }
+        
+        #draw-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 150; }
+        
+        /* Layout Principal Ampliado para Leitura Confortável no Celular */
+        .container { 
+            background: #2b1120; 
+            padding: 1.5rem 2.2rem; 
+            border-radius: 1rem; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65); 
+            max-width: 1180px; 
+            width: 95%; 
+            border: 1px solid #592242; 
+            position: relative; 
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Cabeçalho */
+        .header { text-align: center; margin-bottom: 0.9rem; border-bottom: 2px solid #ec4899; padding-bottom: 0.6rem; }
+        .header h1 { margin: 0; font-size: 1.7rem; color: #f472b6; letter-spacing: 1px; text-transform: uppercase; }
+        
+        /* Questão com Fonte Maior e Ilustração Ampliada */
+        .question-box { 
+            background: #1a0b14; 
+            padding: 1rem 1.4rem; 
+            border-left: 5px solid #f472b6; 
+            border-radius: 0.6rem; 
+            margin-bottom: 0.9rem; 
+            font-size: 1.32rem; 
+            line-height: 1.5; 
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+        }
+        .question-svg-mini {
+            flex-shrink: 0;
+            background: #fce7f3;
+            border: 2px solid #f472b6;
+            border-radius: 0.6rem;
+            padding: 0.5rem 0.8rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+            font-family: 'Times New Roman', Times, serif;
+            font-weight: bold;
+            color: #1e293b;
+            font-size: 1.15rem;
+            text-align: center;
+        }
+        .math-text { font-family: 'Times New Roman', Times, serif; font-style: italic; }
+
+        /* Área da Animação Ampliada */
+        .presentation-area {
+            background: #3d182e;
+            border-radius: 0.85rem;
+            border: 1px solid #6b2a50;
+            padding: 1.4rem 2rem;
+            min-height: 350px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: inset 0 4px 8px rgba(0,0,0,0.35);
+        }
+
+        .explanation {
+            text-align: center;
+            font-size: 1.48rem;
+            font-weight: 500;
+            color: #fbcfe8;
+            margin-bottom: 1.2rem;
+            min-height: 3.6rem;
+            line-height: 1.38;
+            transition: opacity 0.3s ease;
+        }
+
+        .board {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            font-size: 2.35rem;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        /* Estruturas Matemáticas Dinâmicas */
+        .row { display: flex; align-items: center; justify-content: center; gap: 0; }
+        .board-split { display: flex; align-items: center; justify-content: center; gap: 2.8rem; width: 100%; flex-wrap: wrap; }
+        .frac { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 12px; vertical-align: middle; }
+        .num { border-bottom: 3px solid #fdf2f8; padding: 2px 12px; display: flex; align-items: center; justify-content: center; }
+        .den { padding: 2px 12px; display: flex; align-items: center; justify-content: center; }
+        
+        .anim { 
+            display: inline-block; 
+            white-space: nowrap; 
+            will-change: transform, opacity;
+        }
+        .math { font-style: italic; }
+        
+        /* Barra de Progresso */
+        .progress {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 9px;
+            margin-top: 1rem;
+        }
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #592242;
+            transition: background 0.3s, transform 0.3s;
+        }
+        .dot.active {
+            background: #ec4899;
+            transform: scale(1.35);
+            box-shadow: 0 0 8px rgba(236, 72, 153, 0.7);
+        }
+
+        /* Confetti */
+        .confetti { position: absolute; width: 12px; height: 12px; background-color: #f00; opacity: 0; z-index: 50;}
+        @keyframes fall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* Opções de Resposta Ampliadas */
+        .options-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1.2rem;
+            margin-bottom: 0.9rem;
+            background: #1a0b14;
+            padding: 0.75rem 1rem;
+            border-left: 5px solid #ec4899;
+            border-radius: 0.6rem;
+            font-size: 1.3rem;
+            font-weight: 500;
+        }
+        .opt {
+            padding: 0.45rem 1.25rem;
+            border-radius: 0.5rem;
+            background: #2b1120;
+            color: #f9a8d4;
+            border: 1.5px solid #592242;
+            transition: all 0.5s ease;
+        }
+        .opt.correct {
+            background: #166534;
+            color: #fff;
+            border-color: #22c55e;
+            transform: scale(1.12);
+            box-shadow: 0 0 18px rgba(34,197,94,0.5);
+            font-weight: bold;
+        }
+
+        /* Cores Matemáticas Específicas */
+        .c-v1 { color: #38bdf8; font-weight: bold; }   /* Azul claro para V1 */
+        .c-v2 { color: #c084fc; font-weight: bold; }   /* Lilás para V2 */
+        .c-t { color: #fde047; font-weight: bold; }    /* Amarelo para tempos */
+        .c-op { color: #f9a8d4; }                      /* Rosa claro para operadores */
+        .c-hl { color: #fb7185; font-weight: bold; text-shadow: 0 0 10px rgba(251,113,133,0.65); }
+        .c-res { color: #34d399; font-weight: bold; }  /* Verde esmeralda para resultados */
+
+        /* Classes de Destaque Controlado (Prévia Visual) */
+        @keyframes blink {
+            0%, 100% { opacity: 1; color: #fde047; text-shadow: 0 0 12px #fde047; transform: scale(1.12); }
+            50% { opacity: 0.4; color: inherit; text-shadow: none; transform: scale(1); }
+        }
+        .blink-me { animation: blink 1s ease-in-out infinite; display: inline-block; }
+        .hl-yellow { color: #fde047 !important; text-shadow: 0 0 14px rgba(253,224,71,0.9); transform: scale(1.12); z-index: 10; transition: all 0.3s; }
+    </style>
+</head>
+<body>
+    
+    <!-- Controles Topo -->
+    <div class="top-bar">
+        <a href="../../../index.html" class="top-btn" title="Ir para a Página Inicial">🏠 Página Inicial</a>
+        <a href="#" onclick="history.back(); return false;" class="top-btn" title="Página Anterior">⬅️ Voltar</a>
+
+        <div class="tool-group">
+            <button id="btn-pen" class="top-btn" title="Ativar/Desativar Caneta">🖌️ Caneta</button>
+            <div id="pen-menu" class="tool-menu hidden">
+                <div class="menu-row">
+                    <span class="color-btn active" data-color="#f43f5e" style="background:#f43f5e" title="Vermelho Laser"></span>
+                    <span class="color-btn" data-color="#22c55e" style="background:#22c55e" title="Verde Laser"></span>
+                </div>
+                <div class="menu-row">
+                    <label>Tamanho:</label>
+                    <input type="range" id="pen-size" min="1" max="15" value="4">
+                </div>
+            </div>
+        </div>
+        <div class="tool-group">
+            <button id="btn-eraser" class="top-btn" title="Ativar/Desativar Borracha">🧽 Borracha</button>
+            <div id="eraser-menu" class="tool-menu hidden">
+                <div class="menu-row">
+                    <label>Tamanho:</label>
+                    <input type="range" id="eraser-size" min="10" max="100" value="40">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Espaço da Câmera (Webcam) -->
+    <div id="webcam" class="webcam-box">
+        <span>📹 Espaço da Câmera</span>
+        <div class="resize-handle nw"></div>
+        <div class="resize-handle ne"></div>
+        <div class="resize-handle sw"></div>
+        <div class="resize-handle se"></div>
+    </div>
+
+    <!-- Lousa de Desenho Interativa -->
+    <canvas id="draw-canvas"></canvas>
+
+    <div class="container">
+        <div class="header">
+            <h1>Aula Prática — OBMEP (Nível 2)</h1>
+        </div>
+
+        <div class="question-box">
+            <div>
+                <strong>Questão 4:</strong> Uma moto percorre 1 km por minuto. Em quantos por cento deve ser aumentada a sua velocidade para ela percorrer 1 km em 40 segundos?
+            </div>
+            <!-- Miniatura com velocímetro / moto -->
+            <div class="question-svg-mini" title="Esquema da questão">
+                🛵 1 km / min<br>➔ 1 km / 40s
+            </div>
+        </div>
+
+        <div class="options-container" id="options-box">
+            <div id="optA" class="opt">(A) 20%</div>
+            <div id="optB" class="opt">(B) 30%</div>
+            <div id="optC" class="opt">(C) 40%</div>
+            <div id="optD" class="opt">(D) 50%</div>
+            <div id="optE" class="opt">(E) 75%</div>
+        </div>
+
+        <div class="presentation-area">
+            <div class="explanation" id="explanation">Iniciando...</div>
+            <div class="board" id="board">
+                <!-- Elementos dinâmicos entram aqui via JS -->
+            </div>
+        </div>
+
+        <div class="progress" id="progress-bar"></div>
+    </div>
+
+    <script>
+        // --- SISTEMA DE LOUSA (CANVAS) ---
+        const canvas = document.getElementById('draw-canvas');
+        const ctx = canvas.getContext('2d');
+        const btnPen = document.getElementById('btn-pen');
+        const btnEraser = document.getElementById('btn-eraser');
+        
+        const penMenu = document.getElementById('pen-menu');
+        const eraserMenu = document.getElementById('eraser-menu');
+        const colorBtns = document.querySelectorAll('.color-btn');
+        const penSizeInput = document.getElementById('pen-size');
+        const eraserSizeInput = document.getElementById('eraser-size');
+        
+        let currentTool = 'none';
+        let penColor = '#f43f5e';
+        let penSize = 4;
+        let eraserSize = 40;
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        
+        colorBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                colorBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                penColor = btn.dataset.color;
+                setupCanvasCtx();
+                updateCursor();
+            });
+        });
+
+        penSizeInput.addEventListener('input', (e) => { penSize = e.target.value; setupCanvasCtx(); });
+        eraserSizeInput.addEventListener('input', (e) => { eraserSize = e.target.value; setupCanvasCtx(); });
+
+        function updateCursor() {
+            if (currentTool === 'pen') {
+                const colorHex = penColor.replace('#', '%23');
+                const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${colorHex}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>`;
+                document.body.style.cursor = `url('data:image/svg+xml;utf8,${svg}') 2 22, crosshair`;
+            } else if (currentTool === 'eraser') {
+                const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%23fbbf24" stroke="%23451a03" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L2 15l9-9 9 9-5 5z"></path><path d="M11 6l9 9"></path></svg>`;
+                document.body.style.cursor = `url('data:image/svg+xml;utf8,${svg}') 2 22, crosshair`;
+            } else {
+                document.body.style.cursor = 'default';
+            }
+        }
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            setupCanvasCtx();
+        }
+        
+        function setupCanvasCtx() {
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            if (currentTool === 'eraser') {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.lineWidth = eraserSize;
+                ctx.shadowBlur = 0;
+            } else {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = penColor;
+                ctx.shadowColor = penColor;
+                ctx.lineWidth = penSize;
+                ctx.shadowBlur = 6;
+            }
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function toggleTool(tool) {
+            if (currentTool === tool) currentTool = 'none';
+            else currentTool = tool;
+            
+            btnPen.classList.remove('active-pen');
+            btnEraser.classList.remove('active-eraser');
+            penMenu.classList.add('hidden');
+            eraserMenu.classList.add('hidden');
+            
+            if (currentTool === 'pen') {
+                btnPen.classList.add('active-pen');
+                penMenu.classList.remove('hidden');
+                canvas.style.pointerEvents = 'auto';
+                ctx.globalCompositeOperation = 'source-over';
+                setupCanvasCtx();
+            } else if (currentTool === 'eraser') {
+                btnEraser.classList.add('active-eraser');
+                eraserMenu.classList.remove('hidden');
+                canvas.style.pointerEvents = 'auto';
+                ctx.globalCompositeOperation = 'destination-out';
+                setupCanvasCtx();
+            } else {
+                canvas.style.pointerEvents = 'none';
+            }
+            updateCursor();
+        }
+
+        btnPen.addEventListener('click', () => toggleTool('pen'));
+        btnEraser.addEventListener('click', () => toggleTool('eraser'));
+
+        function startDrawing(e) {
+            if (currentTool === 'none') return;
+            isDrawing = true;
+            const pos = getPos(e);
+            lastX = pos.x;
+            lastY = pos.y;
+        }
+
+        function draw(e) {
+            if (!isDrawing || currentTool === 'none') return;
+            e.preventDefault(); 
+            const pos = getPos(e);
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            lastX = pos.x;
+            lastY = pos.y;
+        }
+
+        function stopDrawing() { isDrawing = false; }
+
+        function getPos(e) {
+            if (e.touches && e.touches.length > 0) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            return { x: e.clientX, y: e.clientY };
+        }
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+        canvas.addEventListener('touchstart', startDrawing, {passive: false});
+        canvas.addEventListener('touchmove', draw, {passive: false});
+        canvas.addEventListener('touchend', stopDrawing);
+
+        // --- SISTEMA DE REDIMENSIONAMENTO DA WEBCAM ---
+        const webcam = document.getElementById('webcam');
+        const handles = document.querySelectorAll('.resize-handle');
+        let isResizing = false;
+        let activeHandle = null;
+        let startW, startH, startX, startY, startMouseX, startMouseY;
+
+        handles.forEach(handle => {
+            handle.addEventListener('mousedown', initResize);
+            handle.addEventListener('touchstart', initResize, {passive: false});
+        });
+
+        function initResize(e) {
+            let evt = e;
+            if (e.type === 'touchstart') {
+                e.preventDefault();
+                evt = e.touches[0];
+            }
+            isResizing = true;
+            activeHandle = e.target;
+            const rect = webcam.getBoundingClientRect();
+            startW = rect.width;
+            startH = rect.height;
+            startX = rect.left;
+            startY = rect.top;
+            startMouseX = evt.clientX;
+            startMouseY = evt.clientY;
+            
+            document.addEventListener('mousemove', resizeWebcam);
+            document.addEventListener('mouseup', stopResize);
+            document.addEventListener('touchmove', handleTouchResize, {passive: false});
+            document.addEventListener('touchend', stopResize);
+        }
+        
+        function handleTouchResize(e) { e.preventDefault(); resizeWebcam(e.touches[0]); }
+
+        function resizeWebcam(e) {
+            if (!isResizing) return;
+            const dx = e.clientX - startMouseX;
+            const dy = e.clientY - startMouseY;
+            const handleClass = activeHandle.className;
+            let newW = startW; let newH = startH; let newX = startX; let newY = startY;
+
+            if (handleClass.includes('se')) { newW = startW + dx; newH = startH + dy; } 
+            else if (handleClass.includes('sw')) { newW = startW - dx; newH = startH + dy; newX = startX + dx; } 
+            else if (handleClass.includes('ne')) { newW = startW + dx; newH = startH - dy; newY = startY + dy; } 
+            else if (handleClass.includes('nw')) { newW = startW - dx; newH = startH - dy; newX = startX + dx; newY = startY + dy; }
+
+            if (newW >= 100) { webcam.style.width = newW + 'px'; webcam.style.left = newX + 'px'; }
+            if (newH >= 80) { webcam.style.height = newH + 'px'; webcam.style.top = newY + 'px'; }
+        }
+
+        function stopResize() {
+            isResizing = false;
+            document.removeEventListener('mousemove', resizeWebcam);
+            document.removeEventListener('mouseup', stopResize);
+            document.removeEventListener('touchmove', handleTouchResize);
+            document.removeEventListener('touchend', stopResize);
+        }
+
+        function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+        // --- FLUXO DE DADOS: PREVIEW -> EXECUTE (QUESTÃO 4 - OBMEP NÍVEL 2) ---
+        const stepsData = [
+            { // 0: Tela Inicial
+                text: "Pronto para começar? Use as setas do teclado (➔) para avançar os passos da resolução.",
+                html: `<div class="row" style="height: 100%; display: flex; align-items: center;">
+                        <span class="anim" style="font-size: 5.5rem; color: #ec4899; filter: drop-shadow(0 0 15px rgba(236,72,153,0.5));">▶</span>
+                      </div>`
+            },
+            { // 1: Velocidade Inicial V1
+                text: "Analisamos a situação inicial: a moto percorre 1 km em 1 minuto. Como 1 minuto tem 60 segundos, escrevemos a velocidade inicial V₁:",
+                html: `<div class="row">
+                        <span id="v1_lbl" class="anim math c-v1">V<sub style="font-size:1.3rem;">1</sub></span>
+                        <span id="eq1" class="anim c-op" style="margin: 0 16px;"> = </span>
+                        <div class="frac">
+                            <div class="num"><span id="km1" class="anim c-p">1 km</span></div>
+                            <div class="den"><span id="s60" class="anim c-t">60 s</span></div>
+                        </div>
+                      </div>`
+            },
+            { // 2: Velocidade Final Desejada V2 (Prévia)
+                text: "Queremos que a moto percorra o mesmo 1 km, mas agora em um tempo menor: em apenas 40 segundos. Chamamos essa nova velocidade de V₂:",
+                html: `<div class="row">
+                        <span id="v2_lbl" class="anim math c-v2 blink-me">V<sub style="font-size:1.3rem;">2</sub></span>
+                        <span id="eq2" class="anim c-op blink-me" style="margin: 0 16px;"> = </span>
+                        <div class="frac">
+                            <div class="num"><span id="km2" class="anim c-p blink-me">1 km</span></div>
+                            <div class="den"><span id="s40" class="anim c-t blink-me">40 s</span></div>
+                        </div>
+                      </div>`
+            },
+            { // 3: Velocidade Final Desejada V2 (Execução)
+                text: "Queremos que a moto percorra o mesmo 1 km, mas agora em um tempo menor: em apenas 40 segundos. Chamamos essa nova velocidade de V₂:",
+                html: `<div class="row">
+                        <span id="v2_lbl" class="anim math c-v2">V<sub style="font-size:1.3rem;">2</sub></span>
+                        <span id="eq2" class="anim c-op" style="margin: 0 16px;"> = </span>
+                        <div class="frac">
+                            <div class="num"><span id="km2" class="anim c-p">1 km</span></div>
+                            <div class="den"><span id="s40" class="anim c-t">40 s</span></div>
+                        </div>
+                      </div>`
+            },
+            { // 4: Montar a razão V₂ / V₁ com frações em pé (Prévia)
+                text: "Para comparar as duas velocidades e descobrir quantas vezes V₂ é maior que V₁, calculamos a razão entre elas (V₂ / V₁):",
+                html: `<div class="row">
+                        <div class="frac">
+                            <div class="num"><span id="v2_lbl" class="anim math c-v2 hl-yellow">V<sub style="font-size:1.3rem;">2</sub></span></div>
+                            <div class="den"><span id="v1_lbl" class="anim math c-v1 hl-yellow">V<sub style="font-size:1.3rem;">1</sub></span></div>
+                        </div>
+                        <span id="eq_r" class="anim c-op" style="margin: 0 16px;"> = </span>
+                        <div class="frac">
+                            <div class="num"><span class="c-p">1</span></div>
+                            <div class="den"><span class="c-t">40</span></div>
+                        </div>
+                        <span class="anim c-op" style="margin: 0 10px;">÷</span>
+                        <div class="frac">
+                            <div class="num"><span class="c-p">1</span></div>
+                            <div class="den"><span class="c-t">60</span></div>
+                        </div>
+                      </div>`
+            },
+            { // 5: Fração complexa em pé (Execução)
+                text: "Para comparar as duas velocidades e descobrir quantas vezes V₂ é maior que V₁, calculamos a razão entre elas (V₂ / V₁):",
+                html: `<div class="row">
+                        <div class="frac">
+                            <div class="num"><span id="v2_lbl" class="anim math c-v2">V<sub style="font-size:1.3rem;">2</sub></span></div>
+                            <div class="den"><span id="v1_lbl" class="anim math c-v1">V<sub style="font-size:1.3rem;">1</sub></span></div>
+                        </div>
+                        <span id="eq_r" class="anim c-op" style="margin: 0 16px;"> = </span>
+                        <div class="frac">
+                            <div class="num">
+                                <div class="frac" style="margin:0;">
+                                    <div class="num"><span class="c-p">1</span></div>
+                                    <div class="den"><span class="c-t">40</span></div>
+                                </div>
+                            </div>
+                            <div class="den">
+                                <div class="frac" style="margin:0;">
+                                    <div class="num"><span class="c-p">1</span></div>
+                                    <div class="den"><span class="c-t">60</span></div>
+                                </div>
+                            </div>
+                        </div>
+                      </div>`
+            },
+            { // 6: ANIMAÇÃO DE INVERSÃO DA SEGUNDA FRAÇÃO (Prévia com destaque piscando)
+                text: "Aplicamos a regra da divisão de frações: mantemos a primeira fração (1/40) e multiplicamos pelo inverso da segunda (60/1):",
+                html: `<div class="row">
+                        <div class="frac">
+                            <div class="num"><span id="v2_lbl" class="anim math c-v2">V<sub style="font-size:1.3rem;">2</sub></span></div>
+                            <div class="den"><span id="v1_lbl" class="anim math c-v1">V<sub style="font-size:1.3rem;">1</sub></span></div>
+                        </div>
+                        <span id="eq_r" class="anim c-op" style="margin: 0 16px;"> = </span>
+                        <div class="frac">
+                            <div class="num"><span class="c-p">1</span></div>
+                            <div class="den"><span class="c-t">40</span></div>
+                        </div>
+                        <span class="anim c-op" style="margin: 0 10px;">·</span>
+                        <div class="frac">
+                            <div class="num"><span class="c-t hl-yellow">1</span></div>
+                            <div class="den"><span class="c-t hl-yellow">60</span></div>
+                        </div>
+                        <span class="anim c-yel blink-me" style="font-size:1.8rem; margin-left:10px;">↺ inverter</span>
+                      </div>`
+            },
+            { // 7: FRAÇÃO INVERTIDA (Execução -> 1/40 · 60/1 com frações em pé)
+                text: "Aplicamos a regra da divisão de frações: mantemos a primeira fração (1/40) e multiplicamos pelo inverso da segunda (60/1):",
+                html: `<div class="row">
+                        <div class="frac">
+                            <div class="num"><span id="v2_lbl" class="anim math c-v2">V<sub style="font-size:1.3rem;">2</sub></span></div>
+                            <div class="den"><span id="v1_lbl" class="anim math c-v1">V<sub style="font-size:1.3rem;">1</sub></span></div>
+                        </div>
+                        <span id="eq_r" class="anim c-op" style="margin: 0 16px;"> = </span>
+                        <div class="frac">
+                            <div class="num"><span class="c-p">1</span></div>
+                            <div class="den"><span class="c-t">40</span></div>
+                        </div>
+                        <span class="anim c-op" style="margin: 0 10px;">·</span>
+                        <div class="frac">
+                            <div class="num"><span class="c-t">60</span></div>
+                            <div class="den"><span class="c-p">1</span></div>
+                        </div>
+                      </div>`
+            },
+            { // 8: Juntar em uma única fração (Prévia)
+                text: "Juntamos os numeradores e denominadores em uma única multiplicação de frações:",
+                html: `<div class="row">
+                        <div class="frac">
+                            <div class="num"><span id="v2_lbl" class="anim math c-v2">V<sub style="font-size:1.3rem;">2</sub></span></div>
+                            <div class="den"><span id="v1_lbl" class="anim math c-v1">V<sub style="font-size:1.3rem;">1</sub></span></div>
+                        </div>
+                        <span id="eq_r" class="anim c-op" style="margin: 0 16px;"> = </span>
+                        <div class="frac">
+                            <div class="num"><span class="c-t hl-yellow">1 · 60</span></div>
+                            <div class="den"><span class="c-t hl-yellow">40 · 1</span></div>
+                        </div>
+                      </div>`
+            },
+            { // 9: Resultado 60 / 40 (Execução)
+                text: "Multiplicando, obtemos 60 / 40:",
+                html: `<div class="row">
+                        <div class="frac">
+                            <div class="num"><span id="v2_lbl" class="anim math c-v2">V<sub style="font-size:1.3rem;">2</sub></span></div>
+                            <div class="den"><span id="v1_lbl" class="anim math c-v1">V<sub style="font-size:1.3rem;">1</sub></span></div>
+                        </div>
+                        <span id="eq_r" class="anim c-op" style="margin: 0 16px;"> = </span>
+                        <div class="frac">
+                            <div class="num"><span class="c-t">60</span></div>
+                            <div class="den"><span class="c-t">40</span></div>
+                        </div>
+                      </div>`
+            },
+            { // 10: Simplificar 60/40 por 20 (Prévia)
+                text: "Simplificamos o numerador e o denominador dividindo ambos por 20:",
+                html: `<div class="row">
+                        <div class="frac">
+                            <div class="num"><span id="v2_lbl" class="anim math c-v2">V<sub style="font-size:1.3rem;">2</sub></span></div>
+                            <div class="den"><span id="v1_lbl" class="anim math c-v1">V<sub style="font-size:1.3rem;">1</sub></span></div>
+                        </div>
+                        <span id="eq_r" class="anim c-op" style="margin: 0 16px;"> = </span>
+                        <div class="frac">
+                            <div class="num">
+                                <span style="position:relative; display:inline-flex; align-items:center;">
+                                    <span class="anim c-t hl-yellow">60</span>
+                                    <svg class="anim" style="position:absolute; inset:-2px; width:calc(100% + 4px); height:calc(100% + 4px); overflow:visible; pointer-events:none; z-index:20;"><line x1="0" y1="100%" x2="100%" y2="0" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/></svg>
+                                </span>
+                            </div>
+                            <div class="den">
+                                <span style="position:relative; display:inline-flex; align-items:center;">
+                                    <span class="anim c-t hl-yellow">40</span>
+                                    <svg class="anim" style="position:absolute; inset:-2px; width:calc(100% + 4px); height:calc(100% + 4px); overflow:visible; pointer-events:none; z-index:20;"><line x1="0" y1="100%" x2="100%" y2="0" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/></svg>
+                                </span>
+                            </div>
+                        </div>
+                      </div>`
+            },
+            { // 11: Resultado da simplificação = 3/2 (Execução)
+                text: "Simplificando por 20, encontramos a fração 3/2:",
+                html: `<div class="row">
+                        <div class="frac">
+                            <div class="num"><span id="v2_lbl" class="anim math c-v2">V<sub style="font-size:1.3rem;">2</sub></span></div>
+                            <div class="den"><span id="v1_lbl" class="anim math c-v1">V<sub style="font-size:1.3rem;">1</sub></span></div>
+                        </div>
+                        <span id="eq_r" class="anim c-op" style="margin: 0 16px;"> = </span>
+                        <div class="frac">
+                            <div class="num"><span class="c-res">3</span></div>
+                            <div class="den"><span class="c-res">2</span></div>
+                        </div>
+                      </div>`
+            },
+            { // 12: Converter 3/2 para decimal (1,5) (Prévia)
+                text: "Convertendo a fração 3/2 para número decimal, temos 1,5:",
+                html: `<div class="row">
+                        <div class="frac">
+                            <div class="num"><span id="v2_lbl" class="anim math c-v2">V<sub style="font-size:1.3rem;">2</sub></span></div>
+                            <div class="den"><span id="v1_lbl" class="anim math c-v1">V<sub style="font-size:1.3rem;">1</sub></span></div>
+                        </div>
+                        <span id="eq_r" class="anim c-op" style="margin: 0 16px;"> = </span>
+                        <div class="frac hl-yellow" style="padding: 2px 8px; border-radius: 6px;">
+                            <div class="num"><span class="c-res">3</span></div>
+                            <div class="den"><span class="c-res">2</span></div>
+                        </div>
+                      </div>`
+            },
+            { // 13: Conclusão V₂ = 1,5 V₁ (Execução)
+                text: "Isso significa que a nova velocidade é 1,5 vezes a velocidade original (V₂ = 1,5 V₁):",
+                html: `<div class="row">
+                        <span id="v2_lbl" class="anim math c-v2" style="font-size:2.2rem;">V<sub style="font-size:1.4rem;">2</sub></span>
+                        <span id="eq_r" class="anim c-op" style="margin: 0 16px; font-size:2.2rem;"> = </span>
+                        <span class="anim c-res" style="font-size:2.2rem;">1,5</span>
+                        <span id="v1_lbl" class="anim math c-v1" style="font-size:2.2rem; margin-left:8px;">V<sub style="font-size:1.4rem;">1</sub></span>
+                      </div>`
+            },
+            { // 14: Escrever 1,5 em termos de porcentagem (1 + 0,5) (Prévia)
+                text: "Podemos reescrever 1,5 como (1 + 0,5), onde o '1' representa 100% da velocidade original e '0,5' representa o acréscimo:",
+                html: `<div class="row">
+                        <span id="v2_lbl" class="anim math c-v2" style="font-size:2rem;">V<sub style="font-size:1.3rem;">2</sub></span>
+                        <span id="eq_r" class="anim c-op" style="margin: 0 14px; font-size:2rem;"> = </span>
+                        <span class="anim c-res hl-yellow" style="font-size:2rem;">(1 + 0,5)</span>
+                        <span id="v1_lbl" class="anim math c-v1" style="font-size:2rem; margin-left:6px;">V<sub style="font-size:1.3rem;">1</sub></span>
+                      </div>`
+            },
+            { // 15: Distribuir V₁ (Execução)
+                text: "Distribuindo V₁: V₂ = V₁ + 0,5 V₁",
+                html: `<div class="row">
+                        <span id="v2_lbl" class="anim math c-v2" style="font-size:2rem;">V<sub style="font-size:1.3rem;">2</sub></span>
+                        <span id="eq_r" class="anim c-op" style="margin: 0 14px; font-size:2rem;"> = </span>
+                        <span id="v1_lbl" class="anim math c-v1" style="font-size:2rem;">V<sub style="font-size:1.3rem;">1</sub></span>
+                        <span class="anim c-op" style="margin: 0 10px; font-size:2rem;">+</span>
+                        <span class="anim c-res" style="font-size:2rem;">0,5</span>
+                        <span class="anim math c-v1" style="font-size:2rem; margin-left:6px;">V<sub style="font-size:1.3rem;">1</sub></span>
+                      </div>`
+            },
+            { // 16: Converter 0,5 em porcentagem (50%) (Prévia)
+                text: "Sabemos que 0,5 em formato de porcentagem corresponde exatamente a 50%:",
+                html: `<div class="row">
+                        <span class="anim c-res hl-yellow" style="font-size:2.5rem;">0,5</span>
+                        <span class="anim c-op" style="margin: 0 16px; font-size:2.5rem;">=</span>
+                        <span class="anim c-yel hl-yellow" style="font-size:2.5rem;">50%</span>
+                      </div>`
+            },
+            { // 17: Conclusão Final -> Alternativa (D) 50%
+                text: "Portanto, a velocidade deve ser aumentada em 50% em relação à velocidade original!",
+                html: `<div class="row">
+                        <span class="anim c-yel" style="font-size: 2.2rem; margin-right: 14px;">Aumento:</span>
+                        <span id="res50" class="anim c-res" style="font-size: 3.5rem;">50%</span>
+                      </div>
+                      <div class="row" style="margin-top:28px; background:#166534; padding: 14px 44px; border-radius: 12px; border: 2px solid #22c55e; box-shadow: 0 0 25px rgba(34,197,94,0.4);">
+                        <span id="ans" class="anim" style="color:#fff; font-family: system-ui, sans-serif; font-size:1.7rem; font-weight: bold;">Alternativa (D)</span>
+                      </div>`
+            }
+        ];
+
+        let currentStep = 0;
+        let isAnimating = false;
+        let audioCtx;
+
+        function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        
+        function playTone(freq, type, duration, vol) {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function playPopSound() { initAudio(); playTone(600, 'sine', 0.1, 0.1); setTimeout(() => playTone(900, 'sine', 0.15, 0.05), 50); }
+        function playBackSound() { initAudio(); playTone(400, 'sine', 0.1, 0.05); }
+        function playSuccessSound() {
+            initAudio();
+            playTone(440, 'triangle', 0.1, 0.1);
+            setTimeout(() => playTone(554, 'triangle', 0.1, 0.1), 100);
+            setTimeout(() => playTone(659, 'triangle', 0.1, 0.1), 200);
+            setTimeout(() => playTone(880, 'triangle', 0.5, 0.15), 300);
+        }
+
+        function createConfetti() {
+            const colors = ['#ec4899', '#f472b6', '#fde047', '#22c55e', '#c084fc'];
+            for (let i = 0; i < 60; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animation = `fall ${Math.random() * 2 + 1.5}s linear forwards`;
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 3500);
+            }
+        }
+
+        const progressContainer = document.getElementById('progress-bar');
+        stepsData.forEach((_, i) => {
+            const dot = document.createElement('div');
+            dot.className = `dot ${i === 0 ? 'active' : ''}`;
+            progressContainer.appendChild(dot);
+        });
+
+        // Motor de Animação FLIP - Acionado a cada clique sem pausas automáticas
+        function renderStep(idx, goingForward) {
+            if (isAnimating) return;
+            isAnimating = true;
+            
+            const board = document.getElementById('board');
+            const exp = document.getElementById('explanation');
+            const data = stepsData[idx];
+
+            // Atualiza o texto imediatamente
+            exp.textContent = data.text;
+            exp.style.opacity = '1';
+
+            // Registra posições antigas
+            const oldEls = document.querySelectorAll('.anim');
+            const rects = new Map();
+            oldEls.forEach(el => {
+                if (el.id) rects.set(el.id, el.getBoundingClientRect());
+            });
+
+            // Troca o HTML
+            board.innerHTML = data.html;
+
+            const newEls = document.querySelectorAll('.anim');
+            
+            newEls.forEach(el => {
+                const oldRect = el.id ? rects.get(el.id) : null;
+                if (oldRect) {
+                    const newRect = el.getBoundingClientRect();
+                    const dx = oldRect.left - newRect.left;
+                    const dy = oldRect.top - newRect.top;
+                    
+                    if (dx !== 0 || dy !== 0) {
+                        el.style.transform = `translate(${dx}px, ${dy}px)`;
+                        el.style.transition = 'none';
+                        el.getBoundingClientRect(); // Força reflow
+                        el.style.transition = 'transform 0.9s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                        el.style.transform = 'translate(0, 0)';
+                    }
+                } else {
+                    el.style.opacity = '0';
+                    el.style.transform = 'scale(0.5)';
+                    el.style.transition = 'none';
+                    el.getBoundingClientRect(); // Força reflow
+                    el.style.transition = 'opacity 0.8s ease, transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                    el.style.opacity = '1';
+                    el.style.transform = 'scale(1)';
+                }
+            });
+
+            oldEls.forEach(el => {
+                if (el.id && !document.getElementById(el.id)) {
+                    const clone = el.cloneNode(true);
+                    const rect = rects.get(el.id);
+                    clone.style.position = 'fixed';
+                    clone.style.left = rect.left + 'px';
+                    clone.style.top = rect.top + 'px';
+                    clone.style.margin = '0';
+                    clone.style.pointerEvents = 'none';
+                    clone.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    document.body.appendChild(clone);
+                    clone.getBoundingClientRect(); 
+                    clone.style.opacity = '0';
+                    clone.style.transform = 'scale(0.5)';
+                    setTimeout(() => clone.remove(), 500);
+                }
+            });
+
+            document.querySelectorAll('.dot').forEach((dot, i) => {
+                dot.className = `dot ${i === idx ? 'active' : ''}`;
+            });
+
+            // Resposta correta: (D) 50%
+            if (idx === stepsData.length - 1) {
+                document.getElementById('optD').classList.add('correct');
+            } else {
+                document.getElementById('optD').classList.remove('correct');
+            }
+
+            if (goingForward) {
+                if (idx === stepsData.length - 1) {
+                    setTimeout(() => { playSuccessSound(); createConfetti(); }, 400);
+                } else {
+                    playPopSound();
+                }
+            } else {
+                playBackSound();
+            }
+
+            setTimeout(() => { isAnimating = false; }, 900);
+        }
+
+        // Navegação
+        function nextStep() {
+            if (currentStep < stepsData.length - 1) {
+                clearCanvas();
+                currentStep++;
+                renderStep(currentStep, true);
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 0) {
+                clearCanvas();
+                currentStep--;
+                renderStep(currentStep, false);
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (['ArrowRight', 'ArrowDown', ' '].includes(e.key)) {
+                e.preventDefault();
+                nextStep();
+            } else if (['ArrowLeft', 'ArrowUp'].includes(e.key)) {
+                e.preventDefault();
+                prevStep();
+            }
+        });
+
+        let touchStartX = 0;
+        document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
+        document.addEventListener('touchend', e => {
+            let touchEndX = e.changedTouches[0].screenX;
+            if (touchEndX < touchStartX - 50) nextStep();
+            if (touchEndX > touchStartX + 50) prevStep();
+        }, {passive: true});
+
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById('board').innerHTML = stepsData[0].html;
+            document.getElementById('explanation').textContent = stepsData[0].text;
+        });
+
+    </script>
+</body>
+</html>

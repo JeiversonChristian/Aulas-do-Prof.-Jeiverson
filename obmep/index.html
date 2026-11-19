@@ -41,10 +41,10 @@
             </div>
 
             <!-- Nível 2 -->
-            <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-lg">
+            <div class="bg-slate-800 border border-pink-500/40 rounded-xl overflow-hidden shadow-lg">
                 <button onclick="toggleAccordion('n2')" class="w-full p-6 text-left text-xl font-bold flex justify-between items-center hover:bg-slate-700 transition">
-                    <span>Nível 2 (8º e 9º Ano)</span>
-                    <span id="icon-n2" class="text-blue-400">▼</span>
+                    <span class="text-pink-300">Nível 2 (8º e 9º Ano)</span>
+                    <span id="icon-n2" class="text-pink-400">▼</span>
                 </button>
                 <div id="n2" class="accordion-content bg-slate-800/50">
                     <div class="p-6 grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 gap-3">
@@ -74,11 +74,15 @@
         function generateYears(containerId, levelFolder) {
             const container = document.getElementById(containerId).querySelector('.grid');
             let html = '';
-            for(let year = 2005; year <= 2025; year++) {
-                // Verifica se é Nível 3 e ano 2025 (único ativo por enquanto)
-                if (levelFolder === 'nível 3' && year === 2025) {
+            for (let year = 2005; year <= 2025; year++) {
+                if (levelFolder === 'nível 2' && year === 2025) {
+                    // Nível 2 - 2025 ativo (com destaque rosa da prova Nível 2)
                     let path = levelFolder + '/' + year + '/index.html';
-                    html += `<a href="${path}" class="bg-slate-700 hover:bg-blue-500 text-blue-300 hover:text-white text-center py-3 rounded-lg border border-blue-500/60 hover:border-blue-400 transition duration-200 text-lg font-bold shadow-[0_0_10px_rgba(59,130,246,0.2)] hover:shadow-[0_0_15px_rgba(59,130,246,0.5)] hover:-translate-y-1" title="Acessar resoluções de 2025">${year}</a>`;
+                    html += `<a href="${path}" class="bg-pink-950/60 hover:bg-pink-600 text-pink-300 hover:text-white text-center py-3 rounded-lg border border-pink-500/60 hover:border-pink-400 transition duration-200 text-lg font-bold shadow-[0_0_10px_rgba(236,72,153,0.25)] hover:shadow-[0_0_15px_rgba(236,72,153,0.55)] hover:-translate-y-1" title="Acessar resoluções do Nível 2 - 2025">${year}</a>`;
+                } else if (levelFolder === 'nível 3' && year === 2025) {
+                    // Nível 3 - 2025 ativo
+                    let path = levelFolder + '/' + year + '/index.html';
+                    html += `<a href="${path}" class="bg-slate-700 hover:bg-blue-500 text-blue-300 hover:text-white text-center py-3 rounded-lg border border-blue-500/60 hover:border-blue-400 transition duration-200 text-lg font-bold shadow-[0_0_10px_rgba(59,130,246,0.2)] hover:shadow-[0_0_15px_rgba(59,130,246,0.5)] hover:-translate-y-1" title="Acessar resoluções do Nível 3 - 2025">${year}</a>`;
                 } else {
                     // Botões desativados
                     html += `<div class="bg-slate-800/40 text-slate-600 text-center py-3 rounded-lg border border-slate-700/30 text-lg font-medium cursor-not-allowed" title="Em breve...">${year}</div>`;
